@@ -88,6 +88,7 @@
       </thead>
       <tbody id="history"></tbody>
     </table>
+<div id="pagination" class="p-4 flex justify-center gap-2"></div>
   </div>
 </div>
 
@@ -112,6 +113,8 @@
 
 <script>
 let trades = [];
+let currentPage = 1;
+const rowsPerPage = 10;
 const API_URL = "https://script.google.com/macros/s/AKfycbySeIRn6Oy0gzQfGmklucTAaOeLzm_sSFlV7IERj9mM-LCmrLjZevap5SOgSF5ZcScLhg/exec";
 const startingBalance = 100;
 
@@ -149,13 +152,14 @@ function exportToCSV() {
 
   const headers = ["Date","Pair","Side","RR","PnL","Reason","Notes"];
   const rows = trades.map(t => [
-    t.date,
-    t.pair,
-    t.side,
-    t.pnl,
-    t.reason,
-    t.notes
-  ]);
+  t.date,
+  t.pair,
+  t.side,
+  t.rr,
+  t.pnl,
+  t.reason,
+  t.notes
+]);
 
   const csvContent = [headers, ...rows]
     .map(e => e.join(","))
@@ -174,6 +178,13 @@ function exportToCSV() {
 
 function deleteTrade(index) {
   trades.splice(index, 1);
+
+  const totalPages = Math.ceil(trades.length / rowsPerPage);
+
+  if (currentPage > totalPages) {
+    currentPage = totalPages || 1;
+  }
+
   render();
 }
 
@@ -371,23 +382,34 @@ function render() {
     </div>
   `;
 
-  document.getElementById("history").innerHTML = trades.map((t, i) => `
-    <tr class="border-t border-slate-800">
-      <td class="px-6 py-4">${t.date}</td>
-      <td class="px-6 py-4">${t.pair}</td>
-      <td class="px-6 py-4">${t.side}</td>
-      <td class="px-6 py-4">
-  ${t.rr !== undefined && t.rr !== null ? Number(t.rr).toFixed(1) + 'R' : '-'}
-</td>
-<td class="px-6 py-4">$${t.pnl}</td>
-      <td class="px-6 py-4">${t.reason}</td>
-      <td class="px-6 py-4">${t.notes}</td>
-      <td class="px-6 py-4">
-        <button onclick="deleteTrade(${i})" class="text-red-400 hover:text-red-300">Delete</button>
-      </td>
-    </tr>
-  `).join("");
+  // PAGINATION SLICE
+const start = (currentPage - 1) * rowsPerPage;
+const end = start + rowsPerPage;
+const paginatedTrades = trades.slice(start, end);
 
+// RENDER TABLE
+document.getElementById("history").innerHTML = paginatedTrades.map((t, index) => `
+  <tr class="border-t border-slate-800">
+    <td class="px-6 py-4">${t.date}</td>
+    <td class="px-6 py-4">${t.pair}</td>
+    <td class="px-6 py-4">${t.side}</td>
+    <td class="px-6 py-4">
+      ${t.rr !== undefined && t.rr !== null ? Number(t.rr).toFixed(1) + 'R' : '-'}
+    </td>
+    <td class="px-6 py-4">$${t.pnl}</td>
+    <td class="px-6 py-4">${t.reason}</td>
+    <td class="px-6 py-4">${t.notes}</td>
+    <td class="px-6 py-4">
+      <button onclick="deleteTrade(${start + index})"
+        class="text-red-400 hover:text-red-300">
+        Delete
+      </button>
+    </td>
+  </tr>
+`).join("");
+
+// RENDER PAGINATION
+renderPagination();
   renderEquityCurve();
   renderCalendar();
 }
@@ -406,12 +428,61 @@ trades = raw.map(row => ({
   reason: row.reason || row[5],
   notes: row.notes || row[6],
 }));
-    render();
+    currentPage = 1; // reset ke halaman pertama
+render();
   } catch (err) {
     console.error("Error loadTrades:", err);
   }
 }
+function renderPagination() {
+  const totalPages = Math.ceil(trades.length / rowsPerPage);
+  const container = document.getElementById("pagination");
 
+  if (totalPages <= 1) {
+    container.innerHTML = "";
+    return;
+  }
+
+  let buttons = "";
+
+  if (currentPage > 1) {
+    buttons += `
+      <button onclick="changePage(${currentPage - 1})"
+      class="px-3 py-1 bg-slate-800 rounded hover:bg-slate-700">
+        Prev
+      </button>
+    `;
+  }
+
+  for (let i = 1; i <= totalPages; i++) {
+    buttons += `
+      <button onclick="changePage(${i})"
+      class="px-3 py-1 rounded
+      ${i === currentPage
+        ? "bg-indigo-600 text-white"
+        : "bg-slate-800 hover:bg-slate-700"}">
+        ${i}
+      </button>
+    `;
+  }
+
+  if (currentPage < totalPages) {
+    buttons += `
+      <button onclick="changePage(${currentPage + 1})"
+      class="px-3 py-1 bg-slate-800 rounded hover:bg-slate-700">
+        Next
+      </button>
+    `;
+  }
+
+  container.innerHTML = buttons;
+}
+
+function changePage(page) {
+  currentPage = page;
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 loadTrades();
 </script>
 
