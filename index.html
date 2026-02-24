@@ -32,17 +32,37 @@
 
 <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 mb-8">
   <h3 class="text-lg font-semibold mb-4">Add Trade</h3>
-  <div class="grid md:grid-cols-3 gap-4">
-    <input id="date" type="date" class="bg-slate-800 p-2 rounded-lg" />
-    <input id="pair" type="text" placeholder="Pair" class="bg-slate-800 p-2 rounded-lg" />
-    <select id="side" class="bg-slate-800 p-2 rounded-lg">
-      <option>Long</option>
-      <option>Short</option>
-    </select>
-    <input id="pnl" type="number" placeholder="PnL" class="bg-slate-800 p-2 rounded-lg" />
-    <input id="reason" type="text" placeholder="Reason Entry" class="bg-slate-800 p-2 rounded-lg col-span-2" />
-    <textarea id="notes" placeholder="Notes" class="bg-slate-800 p-2 rounded-lg md:col-span-3"></textarea>
-  </div>
+  <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+
+  <!-- Row 1 -->
+  <input id="date" type="date"
+    class="bg-slate-800 p-3 rounded-xl md:col-span-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+
+  <input id="pair" type="text" placeholder="Pair"
+    class="bg-slate-800 p-3 rounded-xl md:col-span-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+
+  <select id="side"
+    class="bg-slate-800 p-3 rounded-xl md:col-span-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+    <option>Long</option>
+    <option>Short</option>
+  </select>
+
+  <!-- Row 2 -->
+  <input id="rr" type="number" step="0.1" placeholder="RR (ex: 2)"
+    class="bg-slate-800 p-3 rounded-xl md:col-span-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+
+  <input id="pnl" type="number" placeholder="PnL"
+    class="bg-slate-800 p-3 rounded-xl md:col-span-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+
+  <!-- Row 3 -->
+  <input id="reason" type="text" placeholder="Reason Entry"
+    class="bg-slate-800 p-3 rounded-xl md:col-span-6 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+
+  <!-- Row 4 -->
+  <textarea id="notes" placeholder="Notes"
+    class="bg-slate-800 p-3 rounded-xl md:col-span-6 h-24 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"></textarea>
+
+</div>
   <button onclick="addTrade()" class="mt-4 bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-xl">
     Save Trade
   </button>
@@ -57,12 +77,13 @@
       <thead class="text-slate-400 text-sm bg-slate-950">
         <tr>
           <th class="px-6 py-3">Date</th>
-          <th class="px-6 py-3">Pair</th>
-          <th class="px-6 py-3">Side</th>
-          <th class="px-6 py-3">PnL</th>
-          <th class="px-6 py-3">Reason</th>
-          <th class="px-6 py-3">Notes</th>
-          <th class="px-6 py-3">Action</th>
+<th class="px-6 py-3">Pair</th>
+<th class="px-6 py-3">Side</th>
+<th class="px-6 py-3">RR</th>
+<th class="px-6 py-3">PnL</th>
+<th class="px-6 py-3">Reason</th>
+<th class="px-6 py-3">Notes</th>
+<th class="px-6 py-3">Action</th>
         </tr>
       </thead>
       <tbody id="history"></tbody>
@@ -86,7 +107,7 @@
     <div class="text-center">Fri</div>
     <div class="text-center">Sat</div>
   </div>
-  <div id="calendar" class="grid grid-cols-7 gap-2"></div>
+  <div id="calendar" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 max-w-6xl mx-auto"></div>
 </div>
 
 <script>
@@ -100,13 +121,14 @@ let currentYear = currentDate.getFullYear();
 
 async function addTrade() {
   const trade = {
-    date: document.getElementById("date").value,
-    pair: document.getElementById("pair").value,
-    side: document.getElementById("side").value,
-    pnl: Number(document.getElementById("pnl").value),
-    reason: document.getElementById("reason").value,
-    notes: document.getElementById("notes").value,
-  };
+  date: document.getElementById("date").value,
+  pair: document.getElementById("pair").value,
+  side: document.getElementById("side").value,
+  rr: Number(document.getElementById("rr").value),
+  pnl: Number(document.getElementById("pnl").value),
+  reason: document.getElementById("reason").value,
+  notes: document.getElementById("notes").value,
+};
 
   if (!trade.date || !trade.pair || isNaN(trade.pnl)) return;
 
@@ -125,7 +147,7 @@ function exportToCSV() {
     return;
   }
 
-  const headers = ["Date","Pair","Side","PnL","Reason","Notes"];
+  const headers = ["Date","Pair","Side","RR","PnL","Reason","Notes"];
   const rows = trades.map(t => [
     t.date,
     t.pair,
@@ -158,6 +180,7 @@ function deleteTrade(index) {
 function clearForm() {
   document.getElementById("date").value = "";
   document.getElementById("pair").value = "";
+document.getElementById("rr").value = "";
   document.getElementById("pnl").value = "";
   document.getElementById("reason").value = "";
   document.getElementById("notes").value = "";
@@ -170,7 +193,10 @@ function calculateStats() {
   const losses = trades.filter(t => t.pnl < 0).length;
   const winRate = totalTrades ? ((wins / totalTrades) * 100).toFixed(0) : 0;
   const balance = startingBalance + totalPnL;
-  return { totalPnL, totalTrades, winRate, balance, wins, losses };
+const avgRR = totalTrades 
+  ? (trades.reduce((a,t)=>a + (t.rr || 0),0) / totalTrades).toFixed(2)
+  : 0;
+  return { totalPnL, totalTrades, winRate, balance, wins, losses, avgRR };
 }
 
 function renderEquityCurve() {
@@ -278,36 +304,49 @@ function renderCalendar() {
     }
 
     calendar.innerHTML += `
-      <div class="aspect-square rounded-xl p-3 flex flex-col justify-between items-center text-center ${cardStyle} transition-all duration-200 hover:scale-105">
-        <div class="w-full flex justify-between items-start">
-          <span class="text-xs font-medium opacity-80">${day}</span>
-          ${totalTrades > 0 ? `<span class="text-[10px] bg-black/20 px-2 py-0.5 rounded-full">${totalTrades} trades</span>` : ''}
-        </div>
+  <div class="
+    h-28 sm:h-32 md:h-36
+    max-w-[150px] w-full mx-auto
+    rounded-xl p-2 sm:p-3
+    flex flex-col justify-between items-center text-center
+    ${cardStyle}
+    transition-all duration-200
+    hover:shadow-lg
+    break-words
+  ">
+    <div class="w-full flex justify-between items-start">
+      <span class="text-[10px] sm:text-xs font-medium opacity-80">${day}</span>
+      ${totalTrades > 0 ? `
+        <span class="text-[9px] sm:text-[10px] bg-black/20 px-2 py-0.5 rounded-full break-words">
+          ${totalTrades} trades
+        </span>
+      ` : ''}
+    </div>
 
-        ${totalTrades > 0 ? `
-          <div class="flex-1 flex flex-col justify-center items-center">
-            <div class="text-xl font-extrabold leading-none tracking-tight">
-              ${pnl >= 0 ? '+' : ''}$${pnl}
-            </div>
-            <div class="text-[11px] mt-2 opacity-90">
-              ${wins}W • ${losses}L
-            </div>
-          </div>
-        ` : `
-          <div class="flex-1 flex items-center justify-center text-[11px] opacity-40">
-            No trade
-          </div>
-        `}
+    ${totalTrades > 0 ? `
+      <div class="flex-1 flex flex-col justify-center items-center">
+        <div class="text-sm sm:text-lg font-bold leading-tight break-words">
+          ${pnl >= 0 ? '+' : ''}$${pnl}
+        </div>
+        <div class="text-[10px] sm:text-[11px] mt-1 opacity-90 break-words">
+          ${wins}W • ${losses}L
+        </div>
       </div>
-    `;
+    ` : `
+      <div class="flex-1 flex items-center justify-center text-[10px] opacity-40 break-words">
+        No trade
+      </div>
+    `}
+  </div>
+`;
   }
 }
 
 function render() {
-  const { totalPnL, totalTrades, winRate, balance, wins, losses } = calculateStats();
+  const { totalPnL, totalTrades, winRate, balance, wins, losses, avgRR } = calculateStats();
 
   document.getElementById("stats").innerHTML = `
-    <div class="grid md:grid-cols-4 gap-6 mb-8">
+    <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
       <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800">
         <p class="text-sm text-slate-400">Account Balance</p>
         <h2 class="text-2xl font-semibold mt-2">$${balance}</h2>
@@ -316,6 +355,10 @@ function render() {
         <p class="text-sm text-slate-400">Total PnL</p>
         <h2 class="text-2xl font-semibold mt-2">$${totalPnL}</h2>
       </div>
+<div class="bg-slate-900 rounded-2xl p-6 border border-slate-800">
+  <p class="text-sm text-slate-400">Average RR</p>
+  <h2 class="text-2xl font-semibold mt-2">${avgRR}R</h2>
+</div>
       <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800">
         <p class="text-sm text-slate-400">Trades</p>
         <h2 class="text-2xl font-semibold mt-2">${totalTrades}</h2>
@@ -333,7 +376,10 @@ function render() {
       <td class="px-6 py-4">${t.date}</td>
       <td class="px-6 py-4">${t.pair}</td>
       <td class="px-6 py-4">${t.side}</td>
-      <td class="px-6 py-4">$${t.pnl}</td>
+      <td class="px-6 py-4">
+  ${t.rr !== undefined && t.rr !== null ? Number(t.rr).toFixed(1) + 'R' : '-'}
+</td>
+<td class="px-6 py-4">$${t.pnl}</td>
       <td class="px-6 py-4">${t.reason}</td>
       <td class="px-6 py-4">${t.notes}</td>
       <td class="px-6 py-4">
@@ -349,7 +395,17 @@ function render() {
 async function loadTrades() {
   try {
     const res = await fetch(API_URL);
-    trades = await res.json();
+    const raw = await res.json();
+
+trades = raw.map(row => ({
+  date: row.date || row[0],
+  pair: row.pair || row[1],
+  side: row.side || row[2],
+  rr: Number(row.rr ?? row[3]),
+  pnl: Number(row.pnl ?? row[4]),
+  reason: row.reason || row[5],
+  notes: row.notes || row[6],
+}));
     render();
   } catch (err) {
     console.error("Error loadTrades:", err);
