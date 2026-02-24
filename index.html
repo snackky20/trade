@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trading Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 p-6">
+
+<div class="flex justify-between items-center mb-8">
+  <h1 class="text-3xl font-bold tracking-tight">Trading Dashboard</h1>
+  <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-xl text-sm font-semibold">
+    Export to Sheets
+  </button>
+</div>
+
+<div id="stats"></div>
+
+<!-- EQUITY CURVE -->
+<div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 mb-8">
+  <h3 class="text-lg font-semibold mb-4">Equity Curve</h3>
+  <div class="flex gap-6">
+    <div id="yAxis" class="flex flex-col justify-between text-xs text-slate-400 h-60"></div>
+    <div class="flex-1 overflow-x-auto">
+      <svg viewBox="0 0 800 240" class="w-full h-60">
+        <polyline id="equityLine" fill="none" stroke="#10b981" stroke-width="3" />
+      </svg>
+    </div>
+  </div>
+</div>
+
+<div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 mb-8">
+  <h3 class="text-lg font-semibold mb-4">Add Trade</h3>
+  <div class="grid md:grid-cols-3 gap-4">
+    <input id="date" type="date" class="bg-slate-800 p-2 rounded-lg" />
+    <input id="pair" type="text" placeholder="Pair" class="bg-slate-800 p-2 rounded-lg" />
+    <select id="side" class="bg-slate-800 p-2 rounded-lg">
+      <option>Long</option>
+      <option>Short</option>
+    </select>
+    <input id="pnl" type="number" placeholder="PnL" class="bg-slate-800 p-2 rounded-lg" />
+    <input id="reason" type="text" placeholder="Reason Entry" class="bg-slate-800 p-2 rounded-lg col-span-2" />
+    <textarea id="notes" placeholder="Notes" class="bg-slate-800 p-2 rounded-lg md:col-span-3"></textarea>
+  </div>
+  <button onclick="addTrade()" class="mt-4 bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-xl">
+    Save Trade
+  </button>
+</div>
+
+<div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden mb-8">
+  <div class="p-6 border-b border-slate-800">
+    <h3 class="text-lg font-semibold">Trade History</h3>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-left">
+      <thead class="text-slate-400 text-sm bg-slate-950">
+        <tr>
+          <th class="px-6 py-3">Date</th>
+          <th class="px-6 py-3">Pair</th>
+          <th class="px-6 py-3">Side</th>
+          <th class="px-6 py-3">PnL</th>
+          <th class="px-6 py-3">Reason</th>
+          <th class="px-6 py-3">Notes</th>
+          <th class="px-6 py-3">Action</th>
+        </tr>
+      </thead>
+      <tbody id="history"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- CALENDAR (DIPINDAH KE BAWAH) -->
+<div class="bg-slate-900 rounded-2xl p-6 border border-slate-800">
+  <div class="flex items-center justify-between mb-4">
+    <button onclick="changeMonth(-1)" class="px-3 py-1 bg-slate-800 rounded-lg hover:bg-slate-700">◀</button>
+    <h3 id="calendarTitle" class="text-lg font-semibold"></h3>
+    <button onclick="changeMonth(1)" class="px-3 py-1 bg-slate-800 rounded-lg hover:bg-slate-700">▶</button>
+  </div>
+  <div class="grid grid-cols-7 text-[11px] text-slate-400 mb-2">
+    <div class="text-center">Sun</div>
+    <div class="text-center">Mon</div>
+    <div class="text-center">Tue</div>
+    <div class="text-center">Wed</div>
+    <div class="text-center">Thu</div>
+    <div class="text-center">Fri</div>
+    <div class="text-center">Sat</div>
+  </div>
+  <div id="calendar" class="grid grid-cols-7 gap-2"></div>
+</div>
+
+<script>
+let trades = [];
+const API_URL = "https://script.google.com/macros/s/AKfycbySeIRn6Oy0gzQfGmklucTAaOeLzm_sSFlV7IERj9mM-LCmrLjZevap5SOgSF5ZcScLhg/exec";
+const startingBalance = 100;
+
+let currentDate = new Date();
+let currentMonth = currentDate.getMonth();
+let currentYear = currentDate.getFullYear();
+
+async function addTrade() {
+  const trade = {
+    date: document.getElementById("date").value,
+    pair: document.getElementById("pair").value,
+    side: document.getElementById("side").value,
+    pnl: Number(document.getElementById("pnl").value),
+    reason: document.getElementById("reason").value,
+    notes: document.getElementById("notes").value,
+  };
+
+  if (!trade.date || !trade.pair || isNaN(trade.pnl)) return;
+
+  await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify(trade),
+  });
+
+  clearForm();
+  loadTrades();
+}
+
+function exportToCSV() {
+  if (trades.length === 0) {
+    alert("No trades to export.");
+    return;
+  }
+
+  const headers = ["Date","Pair","Side","PnL","Reason","Notes"];
+  const rows = trades.map(t => [
+    t.date,
+    t.pair,
+    t.side,
+    t.pnl,
+    t.reason,
+    t.notes
+  ]);
+
+  const csvContent = [headers, ...rows]
+    .map(e => e.join(","))
+    .join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "trading_journal.csv";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function deleteTrade(index) {
+  trades.splice(index, 1);
+  render();
+}
+
+function clearForm() {
+  document.getElementById("date").value = "";
+  document.getElementById("pair").value = "";
+  document.getElementById("pnl").value = "";
+  document.getElementById("reason").value = "";
+  document.getElementById("notes").value = "";
+}
+
+function calculateStats() {
+  const totalPnL = trades.reduce((a, t) => a + Number(t.pnl), 0);
+  const totalTrades = trades.length;
+  const wins = trades.filter(t => t.pnl > 0).length;
+  const losses = trades.filter(t => t.pnl < 0).length;
+  const winRate = totalTrades ? ((wins / totalTrades) * 100).toFixed(0) : 0;
+  const balance = startingBalance + totalPnL;
+  return { totalPnL, totalTrades, winRate, balance, wins, losses };
+}
+
+function renderEquityCurve() {
+  const equityLine = document.getElementById("equityLine");
+  const yAxis = document.getElementById("yAxis");
+
+  if (trades.length === 0) {
+    equityLine.setAttribute("points", "");
+    yAxis.innerHTML = `<span>$${startingBalance}</span>`;
+    return;
+  }
+
+  let running = startingBalance;
+  const equityData = trades.map(t => {
+    running += t.pnl;
+    return running;
+  });
+
+  const max = Math.max(...equityData, startingBalance);
+  const min = Math.min(...equityData, startingBalance);
+
+  const width = 800;
+  const height = 240;
+
+  const points = equityData.map((val, i) => {
+    const x = (i / (equityData.length - 1 || 1)) * width;
+    const y = height - ((val - min) / (max - min || 1)) * height;
+    return `${x},${y}`;
+  }).join(" ");
+
+  equityLine.setAttribute("points", points);
+
+  yAxis.innerHTML = `
+    <span>$${max.toFixed(2)}</span>
+    <span class="text-slate-500">$${startingBalance.toFixed(2)}</span>
+    <span>$${min.toFixed(2)}</span>
+  `;
+}
+
+function changeMonth(direction) {
+  currentMonth += direction;
+  if (currentMonth < 0) {
+    currentMonth = 11;
+    currentYear--;
+  }
+  if (currentMonth > 11) {
+    currentMonth = 0;
+    currentYear++;
+  }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const calendar = document.getElementById("calendar");
+  const title = document.getElementById("calendarTitle");
+  calendar.innerHTML = "";
+
+  const monthNames = [
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December"
+  ];
+
+  title.innerText = `${monthNames[currentMonth]} ${currentYear}`;
+
+  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+  const dailyStats = {};
+
+  trades.forEach(t => {
+    if (!t.date) return;
+    const d = new Date(t.date);
+    if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+      if (!dailyStats[t.date]) {
+        dailyStats[t.date] = { pnl: 0, wins: 0, losses: 0, trades: 0 };
+      }
+      dailyStats[t.date].pnl += t.pnl;
+      dailyStats[t.date].trades += 1;
+      if (t.pnl > 0) dailyStats[t.date].wins += 1;
+      if (t.pnl < 0) dailyStats[t.date].losses += 1;
+    }
+  });
+
+  // Empty cells
+  for (let i = 0; i < firstDay; i++) {
+    calendar.innerHTML += `<div></div>`;
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const stats = dailyStats[dateStr];
+
+    const pnl = stats ? stats.pnl : 0;
+    const wins = stats ? stats.wins : 0;
+    const losses = stats ? stats.losses : 0;
+    const totalTrades = stats ? stats.trades : 0;
+
+    let cardStyle = "bg-slate-800/80 text-slate-500 border border-slate-700";
+
+    if (pnl > 0) {
+      cardStyle = "bg-emerald-600 text-white shadow-lg shadow-emerald-900/40 border border-emerald-400";
+    }
+    if (pnl < 0) {
+      cardStyle = "bg-red-600 text-white shadow-lg shadow-red-900/40 border border-red-400";
+    }
+
+    calendar.innerHTML += `
+      <div class="aspect-square rounded-xl p-3 flex flex-col justify-between items-center text-center ${cardStyle} transition-all duration-200 hover:scale-105">
+        <div class="w-full flex justify-between items-start">
+          <span class="text-xs font-medium opacity-80">${day}</span>
+          ${totalTrades > 0 ? `<span class="text-[10px] bg-black/20 px-2 py-0.5 rounded-full">${totalTrades} trades</span>` : ''}
+        </div>
+
+        ${totalTrades > 0 ? `
+          <div class="flex-1 flex flex-col justify-center items-center">
+            <div class="text-xl font-extrabold leading-none tracking-tight">
+              ${pnl >= 0 ? '+' : ''}$${pnl}
+            </div>
+            <div class="text-[11px] mt-2 opacity-90">
+              ${wins}W • ${losses}L
+            </div>
+          </div>
+        ` : `
+          <div class="flex-1 flex items-center justify-center text-[11px] opacity-40">
+            No trade
+          </div>
+        `}
+      </div>
+    `;
+  }
+}
+
+function render() {
+  const { totalPnL, totalTrades, winRate, balance, wins, losses } = calculateStats();
+
+  document.getElementById("stats").innerHTML = `
+    <div class="grid md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800">
+        <p class="text-sm text-slate-400">Account Balance</p>
+        <h2 class="text-2xl font-semibold mt-2">$${balance}</h2>
+      </div>
+      <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800">
+        <p class="text-sm text-slate-400">Total PnL</p>
+        <h2 class="text-2xl font-semibold mt-2">$${totalPnL}</h2>
+      </div>
+      <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800">
+        <p class="text-sm text-slate-400">Trades</p>
+        <h2 class="text-2xl font-semibold mt-2">${totalTrades}</h2>
+      </div>
+      <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800">
+        <p class="text-sm text-slate-400">Win Rate</p>
+        <h2 class="text-2xl font-semibold mt-2">${winRate}%</h2>
+        <p class="text-xs text-slate-400 mt-2">Wins: ${wins} | Losses: ${losses}</p>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("history").innerHTML = trades.map((t, i) => `
+    <tr class="border-t border-slate-800">
+      <td class="px-6 py-4">${t.date}</td>
+      <td class="px-6 py-4">${t.pair}</td>
+      <td class="px-6 py-4">${t.side}</td>
+      <td class="px-6 py-4">$${t.pnl}</td>
+      <td class="px-6 py-4">${t.reason}</td>
+      <td class="px-6 py-4">${t.notes}</td>
+      <td class="px-6 py-4">
+        <button onclick="deleteTrade(${i})" class="text-red-400 hover:text-red-300">Delete</button>
+      </td>
+    </tr>
+  `).join("");
+
+  renderEquityCurve();
+  renderCalendar();
+}
+
+async function loadTrades() {
+  try {
+    const res = await fetch(API_URL);
+    trades = await res.json();
+    render();
+  } catch (err) {
+    console.error("Error loadTrades:", err);
+  }
+}
+
+loadTrades();
+</script>
+
+</body>
+</html>
