@@ -221,10 +221,13 @@ function renderEquityCurve() {
   }
 
   let running = startingBalance;
-  const equityData = trades.map(t => {
-    running += t.pnl;
-    return running;
-  });
+  // Hitung equity berdasarkan urutan lama → baru
+const chronologicalTrades = [...trades].reverse();
+
+const equityData = chronologicalTrades.map(t => {
+  running = Number((running + t.pnl).toFixed(2));
+  return running;
+});
 
   const max = Math.max(...equityData, startingBalance);
   const min = Math.min(...equityData, startingBalance);
@@ -497,6 +500,7 @@ loadTrades();
 
 </body>
 </html>
+
 
 
 
