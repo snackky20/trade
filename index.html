@@ -436,7 +436,7 @@ trades = raw.map(row => ({
   reason: row.reason || row[5],
   notes: row.notes || row[6],
 }));
-    trades.sort((a, b) => new Date(b.date) - new Date(a.date));
+    ttrades.reverse();
     currentPage = 1; // reset ke halaman pertama
 render();
   } catch (err) {
@@ -497,6 +497,7 @@ loadTrades();
 
 </body>
 </html>
+
 
 
 
