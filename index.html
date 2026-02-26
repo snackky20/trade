@@ -360,11 +360,15 @@ function render() {
     <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
       <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800">
         <p class="text-sm text-slate-400">Account Balance</p>
-        <h2 class="text-2xl font-semibold mt-2">$${balance}</h2>
+       <h2 class="text-2xl font-semibold mt-2">
+  $${Number(balance).toFixed(2)}
+</h2>
       </div>
       <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800">
         <p class="text-sm text-slate-400">Total PnL</p>
-        <h2 class="text-2xl font-semibold mt-2">$${totalPnL}</h2>
+        <h2 class="text-2xl font-semibold mt-2">
+  $${Number(totalPnL).toFixed(2)}
+</h2>
       </div>
 <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800">
   <p class="text-sm text-slate-400">Average RR</p>
@@ -396,7 +400,9 @@ document.getElementById("history").innerHTML = paginatedTrades.map((t, index) =>
     <td class="px-6 py-4">
       ${t.rr !== undefined && t.rr !== null ? Number(t.rr).toFixed(1) + 'R' : '-'}
     </td>
-    <td class="px-6 py-4">$${t.pnl}</td>
+    <td class="px-6 py-4">
+  $${Number(t.pnl).toFixed(2)}
+</td>
     <td class="px-6 py-4">${t.reason}</td>
     <td class="px-6 py-4">${t.notes}</td>
     <td class="px-6 py-4">
@@ -488,3 +494,4 @@ loadTrades();
 
 </body>
 </html>
+
