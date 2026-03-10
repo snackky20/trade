@@ -112,7 +112,7 @@ class="bg-[#020617] border border-slate-700 p-3 rounded-xl focus:outline-none fo
     <div class="text-center">Fri</div>
     <div class="text-center">Sat</div>
   </div>
-  <div id="calendar" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 max-w-6xl mx-auto"></div>
+  <div id="calendar" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 max-w-6xl mx-auto"></div>
 </div>
 
 <script>
@@ -319,7 +319,7 @@ const isToday = dateStr === today;
 
     calendar.innerHTML += `
   <div class="
-    h-20 sm:h-24 md:h-28
+    h-28 sm:h-32 md:h-36
     max-w-[150px] w-full mx-auto
     rounded-xl pt-3 pb-2 px-2 sm:px-3
     flex flex-col justify-center items-center text-center gap-0 relative
@@ -523,6 +523,7 @@ setInterval(draw,35);
 </script>
 </body>
 </html>
+
 
 
 
