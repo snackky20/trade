@@ -32,35 +32,25 @@
 
 <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 mb-8">
   <h3 class="text-lg font-semibold mb-4">Add Trade</h3>
-  <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
   <!-- Row 1 -->
   <input id="date" type="date"
-    class="bg-slate-800 p-3 rounded-xl md:col-span-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+class="bg-slate-800 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
 
-  <input id="pair" type="text" placeholder="Pair"
-    class="bg-slate-800 p-3 rounded-xl md:col-span-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+<input id="pair" type="text" placeholder="Pair"
+class="bg-slate-800 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
 
-  <select id="side"
-    class="bg-slate-800 p-3 rounded-xl md:col-span-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+<select id="side"
+class="bg-slate-800 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+
     <option>Long</option>
     <option>Short</option>
   </select>
 
   <!-- Row 2 -->
-  <input id="rr" type="number" step="0.1" placeholder="RR (ex: 2)"
-    class="bg-slate-800 p-3 rounded-xl md:col-span-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
-
   <input id="pnl" type="number" placeholder="PnL"
-    class="bg-slate-800 p-3 rounded-xl md:col-span-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
-
-  <!-- Row 3 -->
-  <input id="reason" type="text" placeholder="Reason Entry"
-    class="bg-slate-800 p-3 rounded-xl md:col-span-6 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
-
-  <!-- Row 4 -->
-  <textarea id="notes" placeholder="Notes"
-    class="bg-slate-800 p-3 rounded-xl md:col-span-6 h-24 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"></textarea>
+class="bg-slate-800 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
 
 </div>
   <button onclick="addTrade()" class="mt-4 bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-xl">
@@ -74,19 +64,16 @@
   </div>
   <div class="overflow-x-auto">
     <table class="w-full text-left">
-      <thead class="text-slate-400 text-sm bg-slate-950">
+      <thead class="text-slate-400 text-sm bg-slate-950 sticky top-0">
         <tr>
           <th class="px-6 py-3">Date</th>
 <th class="px-6 py-3">Pair</th>
 <th class="px-6 py-3">Side</th>
-<th class="px-6 py-3">RR</th>
 <th class="px-6 py-3">PnL</th>
-<th class="px-6 py-3">Reason</th>
-<th class="px-6 py-3">Notes</th>
 <th class="px-6 py-3">Action</th>
         </tr>
       </thead>
-      <tbody id="history"></tbody>
+      <tbody id="history" class="text-sm"></tbody>
     </table>
 <div id="pagination" class="p-4 flex justify-center gap-2"></div>
   </div>
@@ -116,7 +103,7 @@ let trades = [];
 let currentPage = 1;
 const rowsPerPage = 10;
 const API_URL = "https://script.google.com/macros/s/AKfycbySeIRn6Oy0gzQfGmklucTAaOeLzm_sSFlV7IERj9mM-LCmrLjZevap5SOgSF5ZcScLhg/exec";
-const startingBalance = 100;
+const startingBalance = 1000;
 
 let currentDate = new Date();
 let currentMonth = currentDate.getMonth();
@@ -127,10 +114,7 @@ async function addTrade() {
   date: document.getElementById("date").value,
   pair: document.getElementById("pair").value,
   side: document.getElementById("side").value,
-  rr: Number(document.getElementById("rr").value),
   pnl: Number(document.getElementById("pnl").value),
-  reason: document.getElementById("reason").value,
-  notes: document.getElementById("notes").value,
 };
 
   if (!trade.date || !trade.pair || isNaN(trade.pnl)) return;
@@ -150,15 +134,12 @@ function exportToCSV() {
     return;
   }
 
-  const headers = ["Date","Pair","Side","RR","PnL","Reason","Notes"];
+  const headers = ["Date","Pair","Side","PnL"];
   const rows = trades.map(t => [
-  t.date,
-  t.pair,
-  t.side,
-  t.rr,
-  t.pnl,
-  t.reason,
-  t.notes
+t.date,
+t.pair,
+t.side,
+t.pnl
 ]);
 
   const csvContent = [headers, ...rows]
@@ -191,10 +172,8 @@ function deleteTrade(index) {
 function clearForm() {
   document.getElementById("date").value = "";
   document.getElementById("pair").value = "";
-document.getElementById("rr").value = "";
+  document.getElementById("side").value = "Long";
   document.getElementById("pnl").value = "";
-  document.getElementById("reason").value = "";
-  document.getElementById("notes").value = "";
 }
 
 function calculateStats() {
@@ -204,10 +183,8 @@ function calculateStats() {
   const losses = trades.filter(t => t.pnl < 0).length;
   const winRate = totalTrades ? ((wins / totalTrades) * 100).toFixed(0) : 0;
   const balance = startingBalance + totalPnL;
-const avgRR = totalTrades 
-  ? (trades.reduce((a,t)=>a + (t.rr || 0),0) / totalTrades).toFixed(2)
-  : 0;
-  return { totalPnL, totalTrades, winRate, balance, wins, losses, avgRR };
+
+  return { totalPnL, totalTrades, winRate, balance, wins, losses };
 }
 
 function renderEquityCurve() {
@@ -359,15 +336,13 @@ function renderCalendar() {
 }
 
 function render() {
-  const { totalPnL, totalTrades, winRate, balance, wins, losses, avgRR } = calculateStats();
+  const { totalPnL, totalTrades, winRate, balance, wins, losses } = calculateStats();
 
   document.getElementById("stats").innerHTML = `
-    <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800">
         <p class="text-sm text-slate-400">Account Balance</p>
-       <h2 class="text-2xl font-semibold mt-2">
-  $${Number(balance).toFixed(2)}
-</h2>
+<h2 class="text-2xl font-semibold">$${Number(balance).toFixed(2)}</h2>
       </div>
       <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800">
         <p class="text-sm text-slate-400">Total PnL</p>
@@ -375,10 +350,6 @@ function render() {
   $${Number(totalPnL).toFixed(2)}
 </h2>
       </div>
-<div class="bg-slate-900 rounded-2xl p-6 border border-slate-800">
-  <p class="text-sm text-slate-400">Average RR</p>
-  <h2 class="text-2xl font-semibold mt-2">${avgRR}R</h2>
-</div>
       <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800">
         <p class="text-sm text-slate-400">Trades</p>
         <h2 class="text-2xl font-semibold mt-2">${totalTrades}</h2>
@@ -398,25 +369,18 @@ const paginatedTrades = trades.slice(start, end);
 
 // RENDER TABLE
 document.getElementById("history").innerHTML = paginatedTrades.map((t, index) => `
-  <tr class="border-t border-slate-800">
-    <td class="px-6 py-4">${t.date}</td>
-    <td class="px-6 py-4">${t.pair}</td>
-    <td class="px-6 py-4">${t.side}</td>
-    <td class="px-6 py-4">
-      ${t.rr !== undefined && t.rr !== null ? Number(t.rr).toFixed(1) + 'R' : '-'}
-    </td>
-    <td class="px-6 py-4">
-  $${Number(t.pnl).toFixed(2)}
+<tr class="border-t border-slate-800 hover:bg-slate-900/40 transition">
+<td class="px-6 py-3">${t.date}</td>
+<td class="px-6 py-3">${t.pair}</td>
+<td class="px-6 py-3">${t.side}</td>
+<td class="px-6 py-3">$${Number(t.pnl).toFixed(2)}</td>
+<td class="px-6 py-3">
+<button onclick="deleteTrade(${start + index})"
+class="text-red-400 hover:text-red-300">
+Delete
+</button>
 </td>
-    <td class="px-6 py-4">${t.reason}</td>
-    <td class="px-6 py-4">${t.notes}</td>
-    <td class="px-6 py-4">
-      <button onclick="deleteTrade(${start + index})"
-        class="text-red-400 hover:text-red-300">
-        Delete
-      </button>
-    </td>
-  </tr>
+</tr>
 `).join("");
 
 // RENDER PAGINATION
@@ -430,18 +394,17 @@ async function loadTrades() {
     const res = await fetch(API_URL);
     const raw = await res.json();
 
-trades = raw.map(row => ({
-  date: row.date || row[0],
-  pair: row.pair || row[1],
-  side: row.side || row[2],
-  rr: Number(row.rr ?? row[3]),
-  pnl: Number(row.pnl ?? row[4]),
-  reason: row.reason || row[5],
-  notes: row.notes || row[6],
-}));
+    trades = raw.map(row => ({
+      date: row.date,
+      pair: row.pair,
+      side: row.side,
+      pnl: parseFloat(row.pnl ?? row.rr ?? 0)
+    }));
+
     trades.reverse();
-    currentPage = 1; // reset ke halaman pertama
-render();
+    currentPage = 1;
+    render();
+
   } catch (err) {
     console.error("Error loadTrades:", err);
   }
@@ -500,6 +463,7 @@ loadTrades();
 
 </body>
 </html>
+
 
 
 
