@@ -5,12 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Trading Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+#matrix{
+  position: fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  z-index:-1;
+  opacity:0.08;
+}
+</style>
 </head>
-<body class="bg-slate-950 text-slate-100 p-6">
+<body class="bg-[#020617] text-slate-100 p-6"> <canvas id="matrix"></canvas>
 
 <div class="flex justify-between items-center mb-8">
   <h1 class="text-3xl font-bold tracking-tight">Trading Dashboard</h1>
-  <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-xl text-sm font-semibold">
+  <button onclick="exportToCSV()" class="bg-emerald-500 hover:bg-emerald-400 shadow-lg shadow-emerald-900/40 px-4 py-2 rounded-xl text-sm font-semibold">
     Export to Sheets
   </button>
 </div>
@@ -18,31 +29,37 @@
 <div id="stats"></div>
 
 <!-- EQUITY CURVE -->
-<div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 mb-8">
+<div class="bg-[#111827]/70 backdrop-blur-xl shadow-lg shadow-black/30 rounded-2xl transition hover:shadow-xl hover:shadow-emerald-900/30 p-6 border border-slate-700/50 mb-8">
   <h3 class="text-lg font-semibold mb-4">Equity Curve</h3>
   <div class="flex gap-6">
-    <div id="yAxis" class="flex flex-col justify-between text-xs text-slate-400 h-60"></div>
+    <div id="yAxis" class="flex flex-col justify-between text-lg font-semibold text-slate-300 h-60"></div>
     <div class="flex-1 overflow-x-auto">
       <svg viewBox="0 0 800 240" class="w-full h-60">
-        <polyline id="equityLine" fill="none" stroke="#10b981" stroke-width="3" />
+        <polyline id="equityLine"
+fill="none"
+stroke="#10b981"
+stroke-width="3"
+stroke-linecap="round"
+stroke-linejoin="round"
+style="filter: drop-shadow(0 0 6px #10b981);"/>
       </svg>
     </div>
   </div>
 </div>
 
-<div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 mb-8">
+<div class="bg-[#111827]/70 backdrop-blur-xl shadow-lg shadow-black/30 rounded-2xl transition hover:shadow-xl hover:shadow-emerald-900/30 p-6 border border-slate-700/50 mb-8">
   <h3 class="text-lg font-semibold mb-4">Add Trade</h3>
   <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
   <!-- Row 1 -->
   <input id="date" type="date"
-class="bg-slate-800 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+class="bg-[#020617] border border-slate-700 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all" />
 
 <input id="pair" type="text" placeholder="Pair"
-class="bg-slate-800 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+class="bg-[#020617] border border-slate-700 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all" />
 
 <select id="side"
-class="bg-slate-800 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+class="bg-[#020617] border border-slate-700 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
 
     <option>Long</option>
     <option>Short</option>
@@ -50,21 +67,21 @@ class="bg-slate-800 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-in
 
   <!-- Row 2 -->
   <input id="pnl" type="number" placeholder="PnL"
-class="bg-slate-800 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+class="bg-[#020617] border border-slate-700 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all" />
 
 </div>
-  <button onclick="addTrade()" class="mt-4 bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-xl">
+  <button onclick="addTrade()" class="mt-4 bg-emerald-500 hover:bg-emerald-400 shadow-lg shadow-emerald-900/40 px-4 py-2 rounded-xl">
     Save Trade
   </button>
 </div>
 
-<div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden mb-8">
-  <div class="p-6 border-b border-slate-800">
+<div class="bg-[#111827]/70 backdrop-blur-xl shadow-lg shadow-black/30 rounded-2xl transition hover:shadow-xl hover:shadow-emerald-900/30 border border-slate-700/50 overflow-hidden mb-8">
+  <div class="p-6 border-b border-slate-700/50">
     <h3 class="text-lg font-semibold">Trade History</h3>
   </div>
   <div class="overflow-x-auto">
     <table class="w-full text-left">
-      <thead class="text-slate-400 text-sm bg-slate-950 sticky top-0">
+      <thead class="text-slate-400 text-sm bg-[#020617] sticky top-0">
         <tr>
           <th class="px-6 py-3">Date</th>
 <th class="px-6 py-3">Pair</th>
@@ -80,11 +97,11 @@ class="bg-slate-800 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-in
 </div>
 
 <!-- CALENDAR (DIPINDAH KE BAWAH) -->
-<div class="bg-slate-900 rounded-2xl p-6 border border-slate-800">
+<div class="bg-[#111827]/70 backdrop-blur-xl shadow-lg shadow-black/30 rounded-2xl transition hover:shadow-xl hover:shadow-emerald-900/30 p-6 border border-slate-700/50">
   <div class="flex items-center justify-between mb-4">
-    <button onclick="changeMonth(-1)" class="px-3 py-1 bg-slate-800 rounded-lg hover:bg-slate-700">◀</button>
+    <button onclick="changeMonth(-1)" class="px-3 py-1 bg-[#020617] border border-slate-700 rounded-lg hover:bg-slate-700">◀</button>
     <h3 id="calendarTitle" class="text-lg font-semibold"></h3>
-    <button onclick="changeMonth(1)" class="px-3 py-1 bg-slate-800 rounded-lg hover:bg-slate-700">▶</button>
+    <button onclick="changeMonth(1)" class="px-3 py-1 bg-[#020617] border border-slate-700 rounded-lg hover:bg-slate-700">▶</button>
   </div>
   <div class="grid grid-cols-7 text-[11px] text-slate-400 mb-2">
     <div class="text-center">Sun</div>
@@ -95,7 +112,7 @@ class="bg-slate-800 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-in
     <div class="text-center">Fri</div>
     <div class="text-center">Sat</div>
   </div>
-  <div id="calendar" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 max-w-6xl mx-auto"></div>
+  <div id="calendar" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 max-w-6xl mx-auto"></div>
 </div>
 
 <script>
@@ -209,12 +226,14 @@ const equityData = chronologicalTrades.map(t => {
   const max = Math.max(...equityData, startingBalance);
   const min = Math.min(...equityData, startingBalance);
 
-  const width = 800;
-  const height = 240;
+  const width = 760;
+const height = 200;
+const offsetX = 20;
+const offsetY = 20;
 
   const points = equityData.map((val, i) => {
-    const x = (i / (equityData.length - 1 || 1)) * width;
-    const y = height - ((val - min) / (max - min || 1)) * height;
+    const x = offsetX + (i / (equityData.length - 1 || 1)) * width;
+    const y = offsetY + height - ((val - min) / (max - min || 1)) * height;
     return `${x},${y}`;
   }).join(" ");
 
@@ -281,47 +300,44 @@ function renderCalendar() {
   for (let day = 1; day <= daysInMonth; day++) {
     const dateStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
     const stats = dailyStats[dateStr];
+    const today = new Date().toISOString().split("T")[0];
+const isToday = dateStr === today;
 
     const pnl = stats ? stats.pnl : 0;
     const wins = stats ? stats.wins : 0;
     const losses = stats ? stats.losses : 0;
     const totalTrades = stats ? stats.trades : 0;
 
-    let cardStyle = "bg-slate-800/80 text-slate-500 border border-slate-700";
+    let cardStyle = "bg-[#020617]/60 border border-slate-800 text-slate-600";
 
     if (pnl > 0) {
-      cardStyle = "bg-emerald-600 text-white shadow-lg shadow-emerald-900/40 border border-emerald-400";
+      cardStyle = "bg-emerald-500/25 text-emerald-300 border border-emerald-500/40";
     }
     if (pnl < 0) {
-      cardStyle = "bg-red-600 text-white shadow-lg shadow-red-900/40 border border-red-400";
+      cardStyle = "bg-red-500/25 text-red-300 border border-red-500/40";
     }
 
     calendar.innerHTML += `
   <div class="
-    h-28 sm:h-32 md:h-36
+    h-20 sm:h-24 md:h-28
     max-w-[150px] w-full mx-auto
-    rounded-xl p-2 sm:p-3
-    flex flex-col justify-between items-center text-center
-    ${cardStyle}
-    transition-all duration-200
-    hover:shadow-lg
+    rounded-xl pt-3 pb-2 px-2 sm:px-3
+    flex flex-col justify-center items-center text-center gap-0 relative
+    ${cardStyle} ${isToday ? "ring-2 ring-emerald-400" : ""}
+    transition-all duration-300 ease-out
+    hover:shadow-lg hover:scale-[1.03]
     break-words
   ">
-    <div class="w-full flex justify-between items-start">
-      <span class="text-[10px] sm:text-xs font-medium opacity-80">${day}</span>
-      ${totalTrades > 0 ? `
-        <span class="text-[9px] sm:text-[10px] bg-black/20 px-2 py-0.5 rounded-full break-words">
-          ${totalTrades} trades
-        </span>
-      ` : ''}
-    </div>
+    <div class="absolute top-2 left-0 w-full text-center">
+  <span class="text-lg font-semibold opacity-90">${day}</span>
+</div>
 
     ${totalTrades > 0 ? `
-      <div class="flex-1 flex flex-col justify-center items-center">
-        <div class="text-sm sm:text-lg font-bold leading-tight break-words">
+      <div class="flex flex-col items-center justify-center flex-1">
+        <div class="text-xl sm:text-2xl font-bold leading-tight break-words my-auto">
   ${pnl >= 0 ? '+' : ''}$${Number(pnl).toFixed(2)}
 </div>
-        <div class="text-[10px] sm:text-[11px] mt-1 opacity-90 break-words">
+        <div class="text-xs opacity-70 break-words absolute bottom-2 left-0 w-full text-center">
           ${wins}W • ${losses}L
         </div>
       </div>
@@ -340,24 +356,24 @@ function render() {
 
   document.getElementById("stats").innerHTML = `
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800">
+      <div class="bg-[#111827]/70 backdrop-blur-xl shadow-lg shadow-black/30 rounded-2xl transition hover:shadow-xl hover:shadow-emerald-900/30 p-6 border border-slate-700/50">
         <p class="text-sm text-slate-400">Account Balance</p>
 <h2 class="text-2xl font-semibold">$${Number(balance).toFixed(2)}</h2>
       </div>
-      <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800">
+      <div class="bg-[#111827]/70 backdrop-blur-xl shadow-lg shadow-black/30 rounded-2xl transition hover:shadow-xl hover:shadow-emerald-900/30 p-6 border border-slate-700/50">
         <p class="text-sm text-slate-400">Total PnL</p>
         <h2 class="text-2xl font-semibold mt-2">
   $${Number(totalPnL).toFixed(2)}
 </h2>
       </div>
-      <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800">
+      <div class="bg-[#111827]/70 backdrop-blur-xl shadow-lg shadow-black/30 rounded-2xl transition hover:shadow-xl hover:shadow-emerald-900/30 p-6 border border-slate-700/50">
         <p class="text-sm text-slate-400">Trades</p>
         <h2 class="text-2xl font-semibold mt-2">${totalTrades}</h2>
       </div>
-      <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800">
+      <div class="bg-[#111827]/70 backdrop-blur-xl shadow-lg shadow-black/30 rounded-2xl transition hover:shadow-xl hover:shadow-emerald-900/30 p-6 border border-slate-700/50">
         <p class="text-sm text-slate-400">Win Rate</p>
         <h2 class="text-2xl font-semibold mt-2">${winRate}%</h2>
-        <p class="text-xs text-slate-400 mt-2">Wins: ${wins} | Losses: ${losses}</p>
+        <p class="text-lg font-semibold text-slate-300 mt-2">Wins: ${wins} | Losses: ${losses}</p>
       </div>
     </div>
   `;
@@ -369,11 +385,11 @@ const paginatedTrades = trades.slice(start, end);
 
 // RENDER TABLE
 document.getElementById("history").innerHTML = paginatedTrades.map((t, index) => `
-<tr class="border-t border-slate-800 hover:bg-slate-900/40 transition">
+<tr class="border-t border-slate-700/50 hover:bg-[#111827]/50 transition">
 <td class="px-6 py-3">${t.date}</td>
 <td class="px-6 py-3">${t.pair}</td>
 <td class="px-6 py-3">${t.side}</td>
-<td class="px-6 py-3">$${Number(t.pnl).toFixed(2)}</td>
+<td class="px-6 py-3 ${t.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}"> $${Number(t.pnl).toFixed(2)} </td>
 <td class="px-6 py-3">
 <button onclick="deleteTrade(${start + index})"
 class="text-red-400 hover:text-red-300">
@@ -423,7 +439,7 @@ function renderPagination() {
   if (currentPage > 1) {
     buttons += `
       <button onclick="changePage(${currentPage - 1})"
-      class="px-3 py-1 bg-slate-800 rounded hover:bg-slate-700">
+      class="px-3 py-1 bg-[#020617] border border-slate-700 rounded hover:bg-slate-700">
         Prev
       </button>
     `;
@@ -434,8 +450,8 @@ function renderPagination() {
       <button onclick="changePage(${i})"
       class="px-3 py-1 rounded
       ${i === currentPage
-        ? "bg-indigo-600 text-white"
-        : "bg-slate-800 hover:bg-slate-700"}">
+        ? "bg-emerald-500 text-white shadow-lg shadow-emerald-900/40"
+        : "bg-[#020617] border border-slate-700 hover:bg-slate-700"}">
         ${i}
       </button>
     `;
@@ -444,7 +460,7 @@ function renderPagination() {
   if (currentPage < totalPages) {
     buttons += `
       <button onclick="changePage(${currentPage + 1})"
-      class="px-3 py-1 bg-slate-800 rounded hover:bg-slate-700">
+      class="px-3 py-1 bg-[#020617] border border-slate-700 rounded hover:bg-slate-700">
         Next
       </button>
     `;
@@ -460,7 +476,51 @@ function changePage(page) {
 }
 loadTrades();
 </script>
+<script>
+const canvas = document.getElementById("matrix");
+const ctx = canvas.getContext("2d");
 
+canvas.height = window.innerHeight;
+canvas.width = window.innerWidth;
+window.addEventListener("resize", () => {
+canvas.height = window.innerHeight;
+canvas.width = window.innerWidth;
+});
+
+const letters = "01";
+const matrix = letters.split("");
+
+const fontSize = 14;
+const columns = canvas.width / fontSize;
+
+const drops = [];
+
+for(let x = 0; x < columns; x++)
+drops[x] = 1;
+
+function draw(){
+
+ctx.fillStyle = "rgba(0,0,0,0.05)";
+ctx.fillRect(0,0,canvas.width,canvas.height);
+
+ctx.fillStyle = "#00ff88";
+ctx.font = fontSize + "px monospace";
+
+for(let i = 0; i < drops.length; i++){
+
+const text = matrix[Math.floor(Math.random()*matrix.length)];
+
+ctx.fillText(text,i*fontSize,drops[i]*fontSize);
+
+if(drops[i]*fontSize > canvas.height && Math.random() > 0.975)
+drops[i] = 0;
+
+drops[i]++;
+}
+}
+
+setInterval(draw,35);
+</script>
 </body>
 </html>
 
