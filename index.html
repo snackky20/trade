@@ -653,11 +653,11 @@ body::after {
   vertical-align: middle;
 }
 .td-num { text-align: center; font-size: 10px; color: var(--text-muted); }
-.td-date { color: var(--text-secondary); font-size: 11px; white-space: nowrap; }
-.td-pair { font-weight: 600; color: var(--text-primary); letter-spacing: 0.5px; }
-.td-pnl-pos { color: var(--green); font-weight: 700; }
-.td-pnl-neg { color: var(--red); font-weight: 700; }
-.td-notes { color: var(--text-tertiary); font-size: 11px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.td-date { color: var(--text-secondary); font-size: 11px; white-space: normal; word-break: break-word; }
+.td-pair { font-weight: 600; color: var(--text-primary); letter-spacing: 0.5px; white-space: normal; word-break: break-all; }
+.td-pnl-pos { color: var(--green); font-weight: 700; white-space: nowrap; }
+.td-pnl-neg { color: var(--red); font-weight: 700; white-space: nowrap; }
+.td-notes { color: var(--text-tertiary); font-size: 11px; white-space: normal; word-break: break-word; max-width: 200px; }
 
 /* CHIPS */
 .chip {
@@ -1010,7 +1010,7 @@ body::after {
   <div class="loading-bar-wrap">
     <div class="loading-bar"></div>
   </div>
-  <div class="loading-msg" id="loadMsg">Connecting to Database...</div>
+  <div class="loading-msg" id="loadMsg">Connecting to Terminal</div>
 </div>
 
 <!-- ═══ TOAST ═══ -->
@@ -1024,13 +1024,13 @@ body::after {
     <div class="topbar-left">
       <div class="brand">
         <div class="brand-mark"></div>
-        <div class="brand-name">SNACK<span>TERMINAL</span></div>
+        <div class="brand-name">SNACK <span>TERMINAL</span></div>
       </div>
       <div class="topbar-divider"></div>
       <div class="topbar-ticker">
         <div class="ticker-item">
           <span class="ticker-label">EQUITY</span>
-          <span class="ticker-val neu" id="tb-equity">$1,000.00</span>
+          <span class="ticker-val neu" id="tb-equity">$600.00</span>
         </div>
         <div class="ticker-item">
           <span class="ticker-label">PNL</span>
@@ -1083,8 +1083,8 @@ body::after {
                 <div class="stat-key">Equity</div>
                 <div class="stat-tag equity">LIVE</div>
               </div>
-              <div class="stat-value cyan" id="d-equity">$1,000.00</div>
-              <div class="stat-meta">Modal awal: <span class="hi">$1,000.00</span></div>
+              <div class="stat-value cyan" id="d-equity">$600.00</div>
+              <div class="stat-meta">Modal awal: <span class="hi">$600.00</span></div>
             </div>
 
             <div class="stat-card c-pnl">
@@ -1177,7 +1177,7 @@ body::after {
                 <div class="panel-title-dot"></div>
                 EQUITY CURVE
               </div>
-              <div style="font-size:10px;color:var(--text-tertiary);">Modal $1,000 · Per trade</div>
+              <div style="font-size:10px;color:var(--text-tertiary);">Modal $600 · Per trade</div>
             </div>
             <div class="chart-legend">
               <div class="legend-item">
@@ -1186,7 +1186,7 @@ body::after {
               </div>
               <div class="legend-item">
                 <div class="legend-line" style="background:var(--surface-4);border-top:1px dashed var(--text-muted);"></div>
-                Baseline $1,000
+                Baseline $600
               </div>
             </div>
             <div class="chart-wrap" style="padding-top:0;padding-bottom:16px;">
