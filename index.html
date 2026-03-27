@@ -1063,6 +1063,7 @@ body::after {
     </button>
     <div class="navbar-right">
       <button class="btn btn-ghost btn-sm" onclick="loadFromSheets(true)">↻ SYNC</button>
+      <button class="btn btn-ghost btn-sm" id="binanceBtn" onclick="syncBinance()" style="border-color:rgba(255,176,32,0.3);color:#ffb020;">⚡ BINANCE</button>
       <button class="btn btn-primary btn-sm" onclick="openModal()">＋ NEW TRADE</button>
     </div>
   </div>
@@ -1133,37 +1134,68 @@ body::after {
             <!-- DAILY TARGET CARD -->
             <div class="stat-card c-target">
               <div class="stat-header">
-                <div class="stat-key">Daily Target</div>
+                <div class="stat-key">Daily Limits</div>
                 <span class="target-status empty" id="target-status-tag">NOT SET</span>
               </div>
               <div class="target-card-body">
-                <!-- Progress side -->
+
+                <!-- Progress bars -->
                 <div class="target-progress-side">
+                  <!-- Today PnL big number -->
                   <div class="target-pct on" id="target-pct">—</div>
-                  <div class="target-progress-wrap">
-                    <div class="target-bar-bg">
-                      <div class="target-bar-fill" id="target-bar" style="width:0%"></div>
-                    </div>
-                    <div class="target-stats-row">
-                      <div class="target-detail">
-                        Today: <span class="hi" id="target-today-pnl" style="color:var(--text-secondary)">$0.00</span>
+
+                  <div style="flex:1;">
+                    <!-- PROFIT bar -->
+                    <div style="margin-bottom:8px;">
+                      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                        <div style="font-size:9px;letter-spacing:1.5px;color:var(--text-tertiary);text-transform:uppercase;">Profit Target</div>
+                        <div style="font-size:10px;font-family:var(--font-mono);">
+                          <span id="target-today-pnl" style="color:var(--text-secondary);">$0.00</span>
+                          <span style="color:var(--text-muted);"> / </span>
+                          <span id="target-profit-label" style="color:var(--green);">—</span>
+                        </div>
                       </div>
-                      <div class="target-detail">
-                        Left: <span class="hi" id="target-remaining">—</span>
+                      <div class="target-bar-bg">
+                        <div class="target-bar-fill" id="target-profit-bar" style="width:0%"></div>
+                      </div>
+                    </div>
+
+                    <!-- LOSS bar -->
+                    <div>
+                      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                        <div style="font-size:9px;letter-spacing:1.5px;color:var(--text-tertiary);text-transform:uppercase;">Loss Limit</div>
+                        <div style="font-size:10px;font-family:var(--font-mono);">
+                          <span id="target-loss-used" style="color:var(--text-secondary);">$0.00</span>
+                          <span style="color:var(--text-muted);"> / </span>
+                          <span id="target-loss-label" style="color:var(--red);">—</span>
+                        </div>
+                      </div>
+                      <div class="target-bar-bg">
+                        <div class="target-bar-fill behind" id="target-loss-bar" style="width:0%;background:var(--red);"></div>
                       </div>
                     </div>
                   </div>
                 </div>
+
                 <!-- Input side -->
                 <div class="target-input-side">
-                  <div class="form-label" style="margin-bottom:5px;">Set Target / Day</div>
-                  <div class="target-input-row">
-                    <span style="font-size:11px;color:var(--text-tertiary);">$</span>
-                    <input type="number" class="target-input" id="target-input" placeholder="50" min="1" step="1">
-                    <button class="target-set-btn" onclick="setTarget()">SET</button>
+                  <div style="margin-bottom:10px;">
+                    <div class="form-label" style="margin-bottom:5px;">Profit Target / Day</div>
+                    <div class="target-input-row">
+                      <span style="font-size:11px;color:var(--green);">+$</span>
+                      <input type="number" class="target-input" id="target-input" placeholder="50" min="1" step="1">
+                    </div>
                   </div>
-                  <div style="font-size:9px;color:var(--text-muted);margin-top:5px;" id="target-label">Target: <span style="color:var(--text-tertiary)">not set</span></div>
+                  <div style="margin-bottom:10px;">
+                    <div class="form-label" style="margin-bottom:5px;">Loss Limit / Day</div>
+                    <div class="target-input-row">
+                      <span style="font-size:11px;color:var(--red);">-$</span>
+                      <input type="number" class="target-input" id="loss-input" placeholder="30" min="1" step="1">
+                    </div>
+                  </div>
+                  <button class="target-set-btn" style="width:100%;text-align:center;padding:6px;" onclick="setTarget()">SET LIMITS</button>
                 </div>
+
               </div>
             </div>
 
@@ -1787,17 +1819,46 @@ function renderCalendar() {
 }
 
 // ═══════════════════════════════════════════
-// DAILY TARGET
+// SYNC BINANCE
+// ═══════════════════════════════════════════
+async function syncBinance() {
+  const btn = document.getElementById('binanceBtn');
+  btn.disabled = true;
+  btn.textContent = '⚡ SYNCING...';
+  showToast('Fetching trades from Binance Futures...', 'info');
+  try {
+    const res  = await fetch(`${API}?action=sync_binance`);
+    const json = await res.json();
+    if (json.status !== 'ok') throw new Error(json.message || 'Sync failed');
+    showToast(`⚡ Binance synced — ${json.added} new trades added`, 'success');
+    await loadFromSheets(false);
+  } catch(e) {
+    console.error(e);
+    showToast('⚠ Binance sync failed: ' + e.message, 'error');
+  }
+  btn.disabled = false;
+  btn.textContent = '⚡ BINANCE';
+}
+
+// ═══════════════════════════════════════════
+// DAILY LIMITS (profit target + loss limit)
 // ═══════════════════════════════════════════
 let dailyTarget = parseFloat(localStorage.getItem('tradelog_target') || '0');
+let dailyLoss   = parseFloat(localStorage.getItem('tradelog_loss')   || '0');
 
 function setTarget() {
-  const val = parseFloat(document.getElementById('target-input').value);
-  if (isNaN(val) || val <= 0) { showToast('Masukkan nilai target yang valid', 'error'); return; }
-  dailyTarget = val;
-  localStorage.setItem('tradelog_target', val);
+  const profitVal = parseFloat(document.getElementById('target-input').value);
+  const lossVal   = parseFloat(document.getElementById('loss-input').value);
+
+  if (isNaN(profitVal) || profitVal <= 0) { showToast('Masukkan profit target yang valid', 'error'); return; }
+  if (isNaN(lossVal)   || lossVal   <= 0) { showToast('Masukkan loss limit yang valid',   'error'); return; }
+
+  dailyTarget = profitVal;
+  dailyLoss   = lossVal;
+  localStorage.setItem('tradelog_target', profitVal);
+  localStorage.setItem('tradelog_loss',   lossVal);
   updateTarget();
-  showToast('Target harian diset: $' + val.toFixed(0), 'success');
+  showToast(`Limits set — Profit: +$${profitVal} | Loss: -$${lossVal}`, 'success');
 }
 
 function updateTarget() {
@@ -1806,57 +1867,71 @@ function updateTarget() {
     .filter(t => t.date === todayStr)
     .reduce((s, t) => s + t.pnl, 0);
 
-  // Update today pnl display
+  // Restore input values
+  if (dailyTarget > 0) document.getElementById('target-input').value = dailyTarget;
+  if (dailyLoss   > 0) document.getElementById('loss-input').value   = dailyLoss;
+
+  // Today PnL big number
+  const pctEl = document.getElementById('target-pct');
+  pctEl.textContent = (todayPnl >= 0 ? '+' : '') + '$' + todayPnl.toFixed(2);
+  pctEl.style.fontSize = '18px';
+
+  // Today PnL color on profit bar label
   const todayEl = document.getElementById('target-today-pnl');
   todayEl.textContent = (todayPnl >= 0 ? '+' : '') + '$' + todayPnl.toFixed(2);
   todayEl.style.color = todayPnl > 0 ? 'var(--green)' : todayPnl < 0 ? 'var(--red)' : 'var(--text-secondary)';
 
-  // Restore input if target saved
-  if (dailyTarget > 0) {
-    document.getElementById('target-input').value = dailyTarget;
-    document.getElementById('target-label').innerHTML =
-      'Target: <span style="color:var(--cyan)">$' + dailyTarget.toFixed(0) + '/day</span>';
-  }
-
-  if (dailyTarget <= 0) {
-    // No target set
-    document.getElementById('target-bar').style.width = '0%';
-    document.getElementById('target-bar').className = 'target-bar-fill';
-    document.getElementById('target-pct').textContent = '—';
-    document.getElementById('target-pct').className = 'target-pct on';
-    document.getElementById('target-remaining').textContent = '—';
-    document.getElementById('target-status-tag').textContent = 'NOT SET';
-    document.getElementById('target-status-tag').className = 'target-status empty';
+  // ── NOT SET state ──
+  if (dailyTarget <= 0 || dailyLoss <= 0) {
+    document.getElementById('target-profit-bar').style.width = '0%';
+    document.getElementById('target-loss-bar').style.width   = '0%';
+    document.getElementById('target-profit-label').textContent = '—';
+    document.getElementById('target-loss-label').textContent   = '—';
+    document.getElementById('target-loss-used').textContent    = '$0.00';
+    document.getElementById('target-status-tag').textContent   = 'NOT SET';
+    document.getElementById('target-status-tag').className     = 'target-status empty';
+    pctEl.className = 'target-pct on';
     return;
   }
 
-  const pct       = Math.min((todayPnl / dailyTarget) * 100, 100);
-  const pctReal   = (todayPnl / dailyTarget) * 100;
-  const remaining = dailyTarget - todayPnl;
-  const isDone    = todayPnl >= dailyTarget;
-  const isBehind  = todayPnl < 0;
-  const state     = isDone ? 'done' : isBehind ? 'behind' : 'on';
+  // ── PROFIT BAR ──
+  const profitPct  = Math.min(Math.max((todayPnl / dailyTarget) * 100, 0), 100);
+  const profitBar  = document.getElementById('target-profit-bar');
+  profitBar.style.width     = profitPct + '%';
+  profitBar.style.background = todayPnl >= dailyTarget ? 'var(--green)' : 'var(--cyan)';
+  document.getElementById('target-profit-label').textContent = '+$' + dailyTarget.toFixed(0);
 
-  const barEl = document.getElementById('target-bar');
-  barEl.style.width    = Math.max(pct, 0) + '%';
-  barEl.className      = 'target-bar-fill ' + state;
+  // ── LOSS BAR ──
+  const lossUsed  = Math.abs(Math.min(todayPnl, 0)); // hanya hitung kalau minus
+  const lossPct   = Math.min((lossUsed / dailyLoss) * 100, 100);
+  const lossBar   = document.getElementById('target-loss-bar');
+  lossBar.style.width = lossPct + '%';
+  document.getElementById('target-loss-used').textContent  = '-$' + lossUsed.toFixed(2);
+  document.getElementById('target-loss-used').style.color  = lossUsed > 0 ? 'var(--red)' : 'var(--text-secondary)';
+  document.getElementById('target-loss-label').textContent = '-$' + dailyLoss.toFixed(0);
 
-  const pctEl = document.getElementById('target-pct');
-  pctEl.textContent = pctReal.toFixed(0) + '%';
-  pctEl.className   = 'target-pct ' + state;
+  // ── STATUS TAG ──
+  const statusEl   = document.getElementById('target-status-tag');
+  const profitHit  = todayPnl >= dailyTarget;
+  const lossHit    = lossUsed >= dailyLoss;
 
-  document.getElementById('target-remaining').textContent =
-    isDone ? 'DONE ✓' : '$' + remaining.toFixed(2);
-  document.getElementById('target-remaining').style.color =
-    isDone ? 'var(--green)' : remaining > 0 ? 'var(--text-secondary)' : 'var(--red)';
-
-  const statusEl = document.getElementById('target-status-tag');
-  const statusMap = {
-    done:   ['TARGET HIT ✓', 'target-status done'],
-    behind: ['BEHIND',        'target-status behind'],
-    on:     ['ON TRACK',      'target-status on']
-  };
-  [statusEl.textContent, statusEl.className] = statusMap[state];
+  if (lossHit) {
+    statusEl.textContent = '🛑 STOP — LOSS LIMIT';
+    statusEl.className   = 'target-status behind';
+    pctEl.className      = 'target-pct behind';
+  } else if (profitHit) {
+    statusEl.textContent = '✓ TARGET HIT';
+    statusEl.className   = 'target-status done';
+    pctEl.className      = 'target-pct done';
+  } else if (todayPnl < 0) {
+    statusEl.textContent = `⚠ LOSS ${lossPct.toFixed(0)}% OF LIMIT`;
+    statusEl.className   = 'target-status behind';
+    pctEl.className      = 'target-pct behind';
+  } else {
+    statusEl.textContent = `ON TRACK ${profitPct.toFixed(0)}%`;
+    statusEl.className   = 'target-status on';
+    pctEl.className      = 'target-pct on';
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -1864,6 +1939,7 @@ function updateTarget() {
 // ═══════════════════════════════════════════
 document.getElementById('f-date').value = today();
 if (dailyTarget > 0) document.getElementById('target-input').value = dailyTarget;
+if (dailyLoss   > 0) document.getElementById('loss-input').value   = dailyLoss;
 loadFromSheets();
 </script>
 </body>
