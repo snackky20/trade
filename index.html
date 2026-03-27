@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SNACK TERMINAL — Professional Trading Dashboard</title>
+<title>SNACK TERMINAL — Personal Trading Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════
@@ -456,6 +456,32 @@ body::after {
 .side-bar-val.green { color: var(--green); }
 .side-bar-val.amber { color: var(--amber); }
 
+/* BREAKDOWN GRID */
+.breakdown-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 4px;
+}
+.bk-item {
+  background: var(--surface-3);
+  border: 1px solid var(--border-1);
+  border-radius: 4px;
+  padding: 5px 8px;
+}
+.bk-label {
+  font-size: 8px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.bk-val {
+  font-family: var(--font-mono);
+  font-size: 14px; font-weight: 700;
+  margin-top: 2px; line-height: 1;
+}
+.bk-val.green { color: var(--green); }
+.bk-val.red   { color: var(--red); }
+
 /* ═══════════════════════════════════════════
    PANEL — generic container
 ═══════════════════════════════════════════ */
@@ -578,11 +604,6 @@ body::after {
   padding: 8px 8px 6px;
   cursor: default;
   transition: transform 0.15s, background 0.15s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
 }
 .cal-cell:hover:not(.empty) { transform: translateY(-1px); }
 .cal-cell.empty { background: transparent; }
@@ -1135,17 +1156,32 @@ body::after {
 
             <div class="stat-card c-side">
               <div class="stat-header">
-                <div class="stat-key">Long / Short</div>
+                <div class="stat-key">Trade Breakdown</div>
               </div>
-              <div class="stat-value white" id="d-side">0 / 0</div>
-              <div class="side-bars">
-                <div class="side-bar-item">
-                  <div class="side-bar-label">Long PnL</div>
-                  <div class="side-bar-val green" id="d-long-pnl">$0</div>
+              <div class="breakdown-grid">
+                <div class="bk-item">
+                  <div class="bk-label">Total Win</div>
+                  <div class="bk-val green" id="bk-tw">0</div>
                 </div>
-                <div class="side-bar-item">
-                  <div class="side-bar-label">Short PnL</div>
-                  <div class="side-bar-val amber" id="d-short-pnl">$0</div>
+                <div class="bk-item">
+                  <div class="bk-label">Total Lose</div>
+                  <div class="bk-val red" id="bk-tl">0</div>
+                </div>
+                <div class="bk-item">
+                  <div class="bk-label">Long Win</div>
+                  <div class="bk-val green" id="bk-lw">0</div>
+                </div>
+                <div class="bk-item">
+                  <div class="bk-label">Long Lose</div>
+                  <div class="bk-val red" id="bk-ll">0</div>
+                </div>
+                <div class="bk-item">
+                  <div class="bk-label">Short Win</div>
+                  <div class="bk-val green" id="bk-sw">0</div>
+                </div>
+                <div class="bk-item">
+                  <div class="bk-label">Short Lose</div>
+                  <div class="bk-val red" id="bk-sl">0</div>
                 </div>
               </div>
             </div>
@@ -1658,12 +1694,17 @@ function updateDashboard() {
   document.getElementById('d-avg-val').textContent = (avg>=0?'+':'')+'$'+avg.toFixed(2);
   document.getElementById('d-avg-tag').textContent = avg >= 0 ? '+AVG' : '-AVG';
 
-  // Side
-  document.getElementById('d-side').textContent = longs.length + ' / ' + shorts.length;
-  document.getElementById('d-long-pnl').textContent  = (lp>=0?'+':'')+'$'+lp.toFixed(0);
-  document.getElementById('d-short-pnl').textContent = (sp>=0?'+':'')+'$'+sp.toFixed(0);
-  document.getElementById('d-long-pnl').className  = 'side-bar-val ' + (lp>=0?'green':'red');
-  document.getElementById('d-short-pnl').className = 'side-bar-val ' + (sp>=0?'green':'red');
+  // Trade Breakdown
+  const longWin  = trades.filter(t=>t.side==='Long'  && t.result==='WIN').length;
+  const longLose = trades.filter(t=>t.side==='Long'  && t.result==='LOSE').length;
+  const shortWin = trades.filter(t=>t.side==='Short' && t.result==='WIN').length;
+  const shortLose= trades.filter(t=>t.side==='Short' && t.result==='LOSE').length;
+  document.getElementById('bk-tw').textContent = wins;
+  document.getElementById('bk-tl').textContent = losses;
+  document.getElementById('bk-lw').textContent = longWin;
+  document.getElementById('bk-ll').textContent = longLose;
+  document.getElementById('bk-sw').textContent = shortWin;
+  document.getElementById('bk-sl').textContent = shortLose;
 
   // Topbar ticker
   document.getElementById('tb-equity').textContent  = '$'+fmt2(eq);
