@@ -1765,8 +1765,6 @@ function updateDashboard() {
   document.getElementById('d-avg-tag').textContent = avg >= 0 ? '+AVG' : '-AVG';
 
   // Trades card count
-  const longs  = trades.filter(t=>t.side==='Long');
-  const shorts = trades.filter(t=>t.side==='Short');
   document.getElementById('bk-long-count').textContent  = longs.length;
   document.getElementById('bk-short-count').textContent = shorts.length;
   document.getElementById('bk-win-count').textContent   = wins;
