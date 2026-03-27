@@ -563,7 +563,7 @@ body::after {
 .cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 3px;
+  gap: 5px;
 }
 .cal-head {
   text-align: center; font-size: 9px; font-weight: 700;
@@ -572,25 +572,39 @@ body::after {
 }
 .cal-cell {
   background: var(--surface-2);
-  border: 1px solid var(--border-1);
-  border-radius: var(--radius-sm);
+  border: none;
+  border-radius: 10px;
   min-height: 68px;
-  padding: 5px 6px;
+  padding: 8px 8px 6px;
   cursor: default;
-  transition: border-color 0.1s;
+  transition: transform 0.15s, background 0.15s;
 }
-.cal-cell:hover { border-color: var(--border-3); }
-.cal-cell.empty { background: transparent; border-color: transparent; cursor: default; }
-.cal-cell.today { border-color: var(--cyan); }
-.cal-cell.day-win  { background: rgba(0,229,160,0.07);  border-color: rgba(0,229,160,0.3); }
-.cal-cell.day-lose { background: rgba(255,61,90,0.15);  border-color: rgba(255,61,90,0.5); }
-.cal-num { font-size: 10px; color: var(--text-tertiary); font-weight: 500; }
+.cal-cell:hover:not(.empty) { transform: translateY(-1px); }
+.cal-cell.empty { background: transparent; }
+.cal-cell.today {
+  background: var(--surface-3);
+  box-shadow: inset 0 0 0 1.5px var(--cyan);
+}
+.cal-cell.day-win {
+  background: rgba(0,229,160,0.15);
+}
+.cal-cell.day-win:hover { background: rgba(0,229,160,0.2); }
+.cal-cell.day-lose {
+  background: rgba(255,61,90,0.18);
+}
+.cal-cell.day-lose:hover { background: rgba(255,61,90,0.24); }
+.cal-num {
+  font-size: 10px; color: var(--text-tertiary);
+  font-weight: 500;
+}
 .cal-cell.today .cal-num { color: var(--cyan); font-weight: 700; }
-.cal-pnl { font-size: 11px; font-weight: 700; margin-top: 4px; line-height: 1.2; }
+.cal-cell.day-win .cal-num  { color: rgba(0,229,160,0.6); }
+.cal-cell.day-lose .cal-num { color: rgba(255,61,90,0.6); }
+.cal-pnl { font-size: 11px; font-weight: 700; margin-top: 5px; line-height: 1.2; }
 .cal-cell.day-win  .cal-pnl { color: #00e5a0; }
-.cal-cell.day-lose .cal-pnl { color: #ff3d5a; text-shadow: 0 0 6px rgba(255,61,90,0.5); }
-.cal-meta { font-size: 9px; color: var(--text-muted); margin-top: 2px; }
-.cal-sides { font-size: 9px; color: var(--text-muted); }
+.cal-cell.day-lose .cal-pnl { color: #ff5570; }
+.cal-meta { font-size: 9px; color: rgba(255,255,255,0.25); margin-top: 3px; }
+.cal-sides { font-size: 9px; color: rgba(255,255,255,0.2); }
 
 /* ═══════════════════════════════════════════
    JOURNAL TABLE
@@ -956,9 +970,9 @@ body::after {
   .cal-summary-val { font-size: 14px; }
   .cal-month-display { font-size: 11px; min-width: 110px; }
   .cal-nav-btn { width: 24px; height: 24px; font-size: 12px; }
-  .cal-grid { gap: 2px; }
+  .cal-grid { gap: 3px; }
   .cal-head { font-size: 8px; padding: 4px 0; letter-spacing: 0.5px; }
-  .cal-cell { min-height: 52px; padding: 4px; }
+  .cal-cell { min-height: 52px; padding: 5px; border-radius: 7px; }
   .cal-num  { font-size: 9px; }
   .cal-pnl  { font-size: 9px; margin-top: 2px; }
   .cal-meta { font-size: 8px; }
