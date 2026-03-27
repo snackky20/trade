@@ -381,18 +381,30 @@ body::after {
   transition: border-color 0.15s;
 }
 .target-input:focus { border-color: var(--cyan); }
+.target-inputs-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.target-input-block { display: flex; flex-direction: column; }
+
 .target-set-btn {
-  padding: 4px 8px;
+  width: 100%;
+  padding: 9px 12px;
   background: var(--surface-4);
   border: 1px solid var(--border-2);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 10px; font-weight: 600;
-  cursor: pointer; letter-spacing: 0.5px;
+  font-size: 11px; font-weight: 700;
+  cursor: pointer; letter-spacing: 1.5px;
   transition: all 0.15s;
+  text-transform: uppercase;
+  text-align: center;
+  display: block;
 }
-.target-set-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+.target-set-btn:hover { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-glow); }
 
 .target-progress-wrap {
   margin-top: 10px;
@@ -1030,6 +1042,7 @@ body::after {
   .target-card-body     { flex-direction: column; gap: 12px; }
   .target-progress-side { width: 100%; }
   .target-input-side    { width: 100%; }
+  .target-inputs-row    { grid-template-columns: 1fr 1fr; gap: 8px; }
   .target-input-row     { gap: 6px; }
   .target-input         { width: 100%; }
   .target-pct           { font-size: 22px; min-width: 52px; }
@@ -1143,6 +1156,20 @@ body::after {
               </div>
               <div class="stat-value amber" id="d-wr">0.0%</div>
               <div class="stat-meta" id="d-wr-sub">0W &nbsp;/&nbsp; 0L</div>
+              <div class="breakdown-grid" style="margin-top:8px;">
+                <div class="bk-item">
+                  <div class="bk-label">Best Win</div>
+                  <div class="bk-val green" id="d-best">$0.00</div>
+                </div>
+                <div class="bk-item">
+                  <div class="bk-label">Worst Loss</div>
+                  <div class="bk-val red" id="d-worst">$0.00</div>
+                </div>
+                <div class="bk-item" style="grid-column:span 2;">
+                  <div class="bk-label">Profit Factor</div>
+                  <div class="bk-val" style="color:var(--amber);" id="d-pf">—</div>
+                </div>
+              </div>
             </div>
 
             <div class="stat-card c-trades">
@@ -1152,6 +1179,24 @@ body::after {
               </div>
               <div class="stat-value purple" id="d-trades">0</div>
               <div class="stat-meta">Avg PnL: <span class="hi" id="d-avg-val">$0.00</span></div>
+              <div class="breakdown-grid" style="margin-top:8px;">
+                <div class="bk-item">
+                  <div class="bk-label">Long</div>
+                  <div class="bk-val" style="color:var(--cyan);" id="bk-long-count">0</div>
+                </div>
+                <div class="bk-item">
+                  <div class="bk-label">Short</div>
+                  <div class="bk-val" style="color:var(--amber);" id="bk-short-count">0</div>
+                </div>
+                <div class="bk-item">
+                  <div class="bk-label">Win</div>
+                  <div class="bk-val green" id="bk-win-count">0</div>
+                </div>
+                <div class="bk-item">
+                  <div class="bk-label">Lose</div>
+                  <div class="bk-val red" id="bk-lose-count">0</div>
+                </div>
+              </div>
             </div>
 
             <div class="stat-card c-side">
@@ -1161,27 +1206,27 @@ body::after {
               <div class="breakdown-grid">
                 <div class="bk-item">
                   <div class="bk-label">Total Win</div>
-                  <div class="bk-val green" id="bk-tw">0</div>
+                  <div class="bk-val green" id="bk-tw">$0.00</div>
                 </div>
                 <div class="bk-item">
                   <div class="bk-label">Total Lose</div>
-                  <div class="bk-val red" id="bk-tl">0</div>
+                  <div class="bk-val red" id="bk-tl">$0.00</div>
                 </div>
                 <div class="bk-item">
                   <div class="bk-label">Long Win</div>
-                  <div class="bk-val green" id="bk-lw">0</div>
+                  <div class="bk-val green" id="bk-lw">$0.00</div>
                 </div>
                 <div class="bk-item">
                   <div class="bk-label">Long Lose</div>
-                  <div class="bk-val red" id="bk-ll">0</div>
+                  <div class="bk-val red" id="bk-ll">$0.00</div>
                 </div>
                 <div class="bk-item">
                   <div class="bk-label">Short Win</div>
-                  <div class="bk-val green" id="bk-sw">0</div>
+                  <div class="bk-val green" id="bk-sw">$0.00</div>
                 </div>
                 <div class="bk-item">
                   <div class="bk-label">Short Lose</div>
-                  <div class="bk-val red" id="bk-sl">0</div>
+                  <div class="bk-val red" id="bk-sl">$0.00</div>
                 </div>
               </div>
             </div>
@@ -1234,21 +1279,23 @@ body::after {
 
                 <!-- Input side -->
                 <div class="target-input-side">
-                  <div style="margin-bottom:10px;">
-                    <div class="form-label" style="margin-bottom:5px;">Profit Target / Day</div>
-                    <div class="target-input-row">
-                      <span style="font-size:11px;color:var(--green);">+$</span>
-                      <input type="number" class="target-input" id="target-input" placeholder="50" min="1" step="1">
+                  <div class="target-inputs-row">
+                    <div class="target-input-block">
+                      <div class="form-label" style="margin-bottom:5px;">Profit / Day</div>
+                      <div class="target-input-row">
+                        <span style="font-size:11px;color:var(--green);">+$</span>
+                        <input type="number" class="target-input" id="target-input" placeholder="50" min="1" step="1">
+                      </div>
+                    </div>
+                    <div class="target-input-block">
+                      <div class="form-label" style="margin-bottom:5px;">Loss / Day</div>
+                      <div class="target-input-row">
+                        <span style="font-size:11px;color:var(--red);">-$</span>
+                        <input type="number" class="target-input" id="loss-input" placeholder="30" min="1" step="1">
+                      </div>
                     </div>
                   </div>
-                  <div style="margin-bottom:10px;">
-                    <div class="form-label" style="margin-bottom:5px;">Loss Limit / Day</div>
-                    <div class="target-input-row">
-                      <span style="font-size:11px;color:var(--red);">-$</span>
-                      <input type="number" class="target-input" id="loss-input" placeholder="30" min="1" step="1">
-                    </div>
-                  </div>
-                  <button class="target-set-btn" style="width:100%;text-align:center;padding:6px;" onclick="setTarget()">SET LIMITS</button>
+                  <button class="target-set-btn" onclick="setTarget()">SET LIMITS</button>
                 </div>
 
               </div>
@@ -1686,8 +1733,25 @@ function updateDashboard() {
   // WR
   document.getElementById('d-wr').textContent = wr.toFixed(1)+'%';
   document.getElementById('d-wr-sub').textContent = wins+'W  /  '+losses+'L';
-  document.getElementById('d-wr-tag').textContent = wr >= 50 ? 'GOOD' : wr > 0 ? 'BELOW' : '—';
-  document.getElementById('d-wr-tag').className = 'stat-tag ' + (wr >= 50 ? 'profit' : wr > 0 ? 'loss' : 'neutral');
+  const wt = document.getElementById('d-wr-tag');
+  wt.textContent = wr >= 50 ? 'GOOD' : wr > 0 ? 'BELOW' : '—';
+  wt.className = 'stat-tag ' + (wr >= 50 ? 'profit' : wr > 0 ? 'loss' : 'neutral');
+
+  // Profit Factor
+  const grossProfit = trades.filter(t=>t.pnl>0).reduce((s,t)=>s+t.pnl,0);
+  const grossLoss   = Math.abs(trades.filter(t=>t.pnl<0).reduce((s,t)=>s+t.pnl,0));
+  const pf = grossLoss > 0 ? (grossProfit/grossLoss).toFixed(2) : grossProfit > 0 ? '∞' : '—';
+  const pfEl = document.getElementById('d-pf');
+  pfEl.textContent = pf;
+  pfEl.style.color = pf === '—' ? 'var(--text-tertiary)' : parseFloat(pf) >= 1.5 ? 'var(--win)' : parseFloat(pf) >= 1 ? 'var(--amber)' : 'var(--lose)';
+
+  // Best Win & Worst Loss
+  const allWins  = trades.filter(t=>t.pnl>0).map(t=>t.pnl);
+  const allLoses = trades.filter(t=>t.pnl<0).map(t=>t.pnl);
+  const bestWin  = allWins.length  ? Math.max(...allWins)  : 0;
+  const worstLoss= allLoses.length ? Math.min(...allLoses) : 0;
+  document.getElementById('d-best').textContent  = '+$'+bestWin.toFixed(2);
+  document.getElementById('d-worst').textContent = '-$'+Math.abs(worstLoss).toFixed(2);
 
   // Trades
   document.getElementById('d-trades').textContent = trades.length;
@@ -1695,16 +1759,18 @@ function updateDashboard() {
   document.getElementById('d-avg-tag').textContent = avg >= 0 ? '+AVG' : '-AVG';
 
   // Trade Breakdown
-  const longWin  = trades.filter(t=>t.side==='Long'  && t.result==='WIN').length;
-  const longLose = trades.filter(t=>t.side==='Long'  && t.result==='LOSE').length;
-  const shortWin = trades.filter(t=>t.side==='Short' && t.result==='WIN').length;
-  const shortLose= trades.filter(t=>t.side==='Short' && t.result==='LOSE').length;
-  document.getElementById('bk-tw').textContent = wins;
-  document.getElementById('bk-tl').textContent = losses;
-  document.getElementById('bk-lw').textContent = longWin;
-  document.getElementById('bk-ll').textContent = longLose;
-  document.getElementById('bk-sw').textContent = shortWin;
-  document.getElementById('bk-sl').textContent = shortLose;
+  const longWin   = trades.filter(t=>t.side==='Long'  && t.result==='WIN').reduce((s,t)=>s+t.pnl,0);
+  const longLose  = trades.filter(t=>t.side==='Long'  && t.result==='LOSE').reduce((s,t)=>s+t.pnl,0);
+  const shortWin  = trades.filter(t=>t.side==='Short' && t.result==='WIN').reduce((s,t)=>s+t.pnl,0);
+  const shortLose = trades.filter(t=>t.side==='Short' && t.result==='LOSE').reduce((s,t)=>s+t.pnl,0);
+  const totalWin  = trades.filter(t=>t.result==='WIN').reduce((s,t)=>s+t.pnl,0);
+  const totalLose = trades.filter(t=>t.result==='LOSE').reduce((s,t)=>s+t.pnl,0);
+  document.getElementById('bk-tw').textContent = '+$'+totalWin.toFixed(2);
+  document.getElementById('bk-tl').textContent = '-$'+Math.abs(totalLose).toFixed(2);
+  document.getElementById('bk-lw').textContent = '+$'+longWin.toFixed(2);
+  document.getElementById('bk-ll').textContent = '-$'+Math.abs(longLose).toFixed(2);
+  document.getElementById('bk-sw').textContent = '+$'+shortWin.toFixed(2);
+  document.getElementById('bk-sl').textContent = '-$'+Math.abs(shortLose).toFixed(2);
 
   // Topbar ticker
   document.getElementById('tb-equity').textContent  = '$'+fmt2(eq);
