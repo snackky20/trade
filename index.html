@@ -376,11 +376,12 @@ body::after {
   margin-top: 4px;
 }
 .target-input {
-  width: 80px;
+  width: 100%;
+  min-width: 0;
   background: var(--surface-3);
   border: 1px solid var(--border-2);
   border-radius: var(--radius-sm);
-  padding: 4px 8px;
+  padding: 6px 8px;
   color: var(--text-primary);
   font-family: var(--font-mono);
   font-size: 12px; font-weight: 600;
@@ -394,7 +395,15 @@ body::after {
   gap: 10px;
   margin-bottom: 10px;
 }
-.target-input-block { display: flex; flex-direction: column; }
+.target-input-block {
+  display: flex; flex-direction: column;
+  min-width: 0;
+}
+.target-input-block .form-label {
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.3;
+}
 
 .target-set-btn {
   width: 100%;
