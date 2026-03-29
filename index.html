@@ -1608,7 +1608,7 @@ function closeAllModals() {
 }
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeAllModals();
-  if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); Modal.open(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'b') { e.preventDefault(); Modal.open(); }
   if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); Undo.restore(); }
   if ((e.ctrlKey || e.metaKey) && e.key === ',') { e.preventDefault(); Config.open(); }
 });
