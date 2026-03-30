@@ -746,7 +746,7 @@ body::before {
     <button class="nav-tab" onclick="Nav.to('journal',this)"><span class="nav-ico">≡</span> JOURNAL</button>
     <div class="nav-r">
       <button class="btn btn-g btn-sm" onclick="Sheets.load(true)">↻ SYNC</button>
-      <button class="btn btn-g btn-sm" id="binBtn" onclick="App.binance()" style="border-color:rgba(255,176,32,.3);color:var(--amber);">⚡ BINANCE</button>
+      <button class="btn btn-g btn-sm" onclick="Withdraw.open()" style="border-color:rgba(255,176,32,.3);color:var(--amber);">↓ WITHDRAW</button>
       <button class="btn btn-g btn-sm" onclick="Config.open()">⚙ CONFIG</button>
       <button class="btn btn-p btn-sm" onclick="Modal.open()">＋ NEW TRADE</button>
     </div>
@@ -954,6 +954,45 @@ body::before {
   </div>
 </div>
 
+<!-- WITHDRAW MODAL -->
+<div class="m-bg" id="wdBg">
+  <div class="m-box">
+    <div class="m-head">
+      <div class="m-title"><div class="pnl-dot" style="background:var(--amber)"></div>WITHDRAW / DEPOSIT</div>
+      <button class="m-x" onclick="Withdraw.close()">✕</button>
+    </div>
+    <div class="m-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--b1);border-radius:3px;overflow:hidden;margin-bottom:14px;">
+        <div style="background:var(--s2);padding:10px 14px;text-align:center"><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:3px">Current Equity</div><div style="font-size:18px;font-weight:700;color:var(--cyan)" id="wd-eq">$0</div></div>
+        <div style="background:var(--s2);padding:10px 14px;text-align:center"><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:3px">Total Withdrawn</div><div style="font-size:18px;font-weight:700;color:var(--amber)" id="wd-total">$0</div></div>
+      </div>
+      <div class="fg">
+        <label class="fl">Type</label>
+        <select class="fc" id="wd-type">
+          <option value="withdraw">↓ Withdraw (kurangi saldo)</option>
+          <option value="deposit">↑ Deposit (tambah saldo)</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">Amount ($)</label>
+        <input type="number" class="fc" id="wd-amt" placeholder="0.00" step="0.01" min="0.01">
+      </div>
+      <div class="fg">
+        <label class="fl">Note (optional)</label>
+        <input type="text" class="fc" id="wd-note" placeholder="e.g. Transfer ke BCA">
+      </div>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--b1)">
+        <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:6px">History</div>
+        <div id="wd-history" style="max-height:140px;overflow-y:auto;font-size:11px;color:var(--t2)"></div>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-g" onclick="Withdraw.close()">Cancel</button>
+      <button class="btn btn-p" onclick="Withdraw.save()">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
 /* ═══════════════════════════════════════════
@@ -1036,7 +1075,6 @@ var Sheets = {
           notes: String(r.notes || '').trim()
         };
       }).filter(function(t) { return t.date && t.pair; });
-      trades.sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
       setConn('on');
       if (manual) Toast.show('Synced — ' + trades.length + ' trades loaded', 'ok');
     } catch (e) {
@@ -1079,21 +1117,6 @@ var App = {
     Dash.update();
     Journal.updatePairs();
     Journal.render();
-  },
-  binance: async function() {
-    var btn = el('binBtn');
-    btn.disabled = true; btn.textContent = '⚡ SYNCING...';
-    Toast.show('Fetching from Binance Futures...', 'inf');
-    try {
-      var res = await fetch(API_URL + '?action=sync_binance');
-      var json = await res.json();
-      if (json.status !== 'ok') throw new Error(json.message || 'Failed');
-      Toast.show('⚡ Binance synced — ' + (json.added || 0) + ' new trades', 'ok');
-      await Sheets.load(false);
-    } catch (e) {
-      Toast.show('⚠ Binance sync failed: ' + e.message, 'err');
-    }
-    btn.disabled = false; btn.textContent = '⚡ BINANCE';
   }
 };
 
@@ -1126,7 +1149,7 @@ function calcStreak() {
 var Dash = {
   update: function() {
     var tp = trades.reduce(function(s, t) { return s + t.pnl; }, 0);
-    var eq = BASE_EQ + tp;
+    var eq = BASE_EQ + tp - Withdraw.getTotal();
     var wins = trades.filter(function(t) { return t.result === 'WIN'; });
     var loses = trades.filter(function(t) { return t.result === 'LOSE'; });
     var longs = trades.filter(function(t) { return t.side === 'Long'; });
@@ -1159,7 +1182,8 @@ var Dash = {
 
     // Peak equity & drawdown
     var sorted2 = trades.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
-    var runEq = BASE_EQ, peak = BASE_EQ;
+    var wdTotal = Withdraw.getTotal();
+    var runEq = BASE_EQ - wdTotal, peak = BASE_EQ - wdTotal;
     sorted2.forEach(function(t) { runEq += t.pnl; if (runEq > peak) peak = runEq; });
     var dd = peak > 0 ? ((peak - eq) / peak * 100) : 0;
     el('v-peak').textContent = '$' + f2(peak);
@@ -1371,7 +1395,7 @@ var Journal = {
   },
   render: function() {
     var rf = el('jR').value, sf = el('jS').value, pf = el('jP').value;
-    var list = trades.filter(function(t) { return (!rf || t.result === rf) && (!sf || t.side === sf) && (!pf || t.pair === pf); }).slice().sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+    var list = trades.filter(function(t) { return (!rf || t.result === rf) && (!sf || t.side === sf) && (!pf || t.pair === pf); }).slice().reverse();
     el('jCt').textContent = list.length + ' / ' + trades.length + ' RECORDS';
     var tb = el('jTb');
     if (!list.length) { tb.innerHTML = '<tr><td colspan="8"><div class="empty-s"><div class="ei">▤</div><div class="et">No records found</div></div></td></tr>'; return; }
@@ -1439,7 +1463,6 @@ var Undo = (function() {
       hide();
       if (pending) {
         trades.push(pending);
-        trades.sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
         pending = null;
         App.refresh();
         Toast.show('Trade restored', 'ok');
@@ -1535,7 +1558,6 @@ var Modal = (function() {
       try {
         await Sheets.add(trade);
         trades.push(trade);
-        trades.sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
         // Remember pair
         lastPair = pair;
         localStorage.setItem('snack_last_pair', pair);
@@ -1552,6 +1574,64 @@ var Modal = (function() {
 })();
 
 /* ═══════════════════════════════════════════
+   WITHDRAW / DEPOSIT
+   ═══════════════════════════════════════════ */
+var Withdraw = (function() {
+  function getHistory() {
+    try { return JSON.parse(localStorage.getItem('snack_withdrawals') || '[]'); } catch(e) { return []; }
+  }
+  function saveHistory(h) { localStorage.setItem('snack_withdrawals', JSON.stringify(h)); }
+  function getTotal() {
+    return getHistory().reduce(function(s, w) { return s + (w.type === 'withdraw' ? w.amount : -w.amount); }, 0);
+  }
+  function renderHistory() {
+    var h = getHistory();
+    var box = el('wd-history');
+    if (!h.length) { box.innerHTML = '<div style="color:var(--tm);padding:6px 0">No history yet</div>'; return; }
+    box.innerHTML = h.slice().reverse().map(function(w) {
+      var isW = w.type === 'withdraw';
+      var clr = isW ? 'var(--amber)' : 'var(--green)';
+      var sign = isW ? '-' : '+';
+      var label = isW ? 'WD' : 'DEP';
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--b1)">' +
+        '<div><span style="font-size:8px;font-weight:700;letter-spacing:1px;color:' + clr + ';margin-right:6px">' + label + '</span><span style="color:var(--t3)">' + (w.note || '—') + '</span></div>' +
+        '<div style="font-weight:700;color:' + clr + '">' + sign + '$' + w.amount.toFixed(2) + '</div>' +
+      '</div>';
+    }).join('');
+  }
+  return {
+    getTotal: getTotal,
+    open: function() {
+      var tp = trades.reduce(function(s, t) { return s + t.pnl; }, 0);
+      var eq = BASE_EQ + tp - getTotal();
+      el('wd-eq').textContent = '$' + f2(eq);
+      el('wd-total').textContent = '$' + f2(getTotal());
+      el('wd-amt').value = '';
+      el('wd-note').value = '';
+      el('wd-type').value = 'withdraw';
+      renderHistory();
+      el('wdBg').classList.add('open');
+    },
+    close: function() { el('wdBg').classList.remove('open'); },
+    save: function() {
+      var type = el('wd-type').value;
+      var amt = parseFloat(el('wd-amt').value);
+      var note = el('wd-note').value.trim();
+      if (isNaN(amt) || amt <= 0) { Toast.show('Enter valid amount', 'err'); return; }
+
+      var h = getHistory();
+      h.push({ type: type, amount: amt, note: note, date: iso() });
+      saveHistory(h);
+
+      var label = type === 'withdraw' ? 'Withdrawn' : 'Deposited';
+      Toast.show(label + ' $' + amt.toFixed(2), 'ok');
+      Withdraw.close();
+      App.refresh();
+    }
+  };
+})();
+
+/* ═══════════════════════════════════════════
    CONFIG MODAL
    ═══════════════════════════════════════════ */
 var Config = {
@@ -1562,7 +1642,7 @@ var Config = {
     el('cfg-status').textContent = API_URL ? 'Connected' : 'Not set';
     el('cfg-status').style.color = API_URL ? 'var(--green)' : 'var(--red)';
     el('cfg-trades').textContent = trades.length;
-    el('cfg-equity').textContent = '$' + f2(BASE_EQ + trades.reduce(function(s, t) { return s + t.pnl; }, 0));
+    el('cfg-equity').textContent = '$' + f2(BASE_EQ + trades.reduce(function(s, t) { return s + t.pnl; }, 0) - Withdraw.getTotal());
     el('cfgBg').classList.add('open');
   },
   close: function() {
@@ -1605,15 +1685,17 @@ var Config = {
 function closeAllModals() {
   Modal.close();
   Config.close();
+  Withdraw.close();
 }
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeAllModals();
-  if ((e.ctrlKey || e.metaKey) && e.key === 'b') { e.preventDefault(); Modal.open(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); Modal.open(); }
   if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); Undo.restore(); }
   if ((e.ctrlKey || e.metaKey) && e.key === ',') { e.preventDefault(); Config.open(); }
 });
 el('mBg').addEventListener('click', function(e) { if (e.target === el('mBg')) Modal.close(); });
 el('cfgBg').addEventListener('click', function(e) { if (e.target === el('cfgBg')) Config.close(); });
+el('wdBg').addEventListener('click', function(e) { if (e.target === el('wdBg')) Withdraw.close(); });
 window.onerror = function() { var l = el('loader'); if (l) l.classList.add('out'); };
 
 /* ═══════════════════════════════════════════
