@@ -3,202 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLBB: EVENT 6000 DIAMOND GRATIS</title>
+    <title>Pet Shop Misteri: Koleksi Terlarang (v1.0)</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #0f172a, #1e293b);
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
+        * { box-sizing: border-box; font-family: 'Courier New', Courier, monospace; }
+        body { background-color: #000; color: #00ffff; margin: 0; padding-bottom: 50px; }
 
-        .ml-container {
-            width: 90%;
-            max-width: 450px;
-            background: rgba(15, 23, 42, 0.8);
-            border: 2px solid #fbbf24;
-            border-radius: 15px;
+        header {
+            background: linear-gradient(45deg, #1a1a1a, #333);
+            color: #00ffff;
             padding: 25px;
             text-align: center;
-            box-shadow: 0 0 30px rgba(251, 191, 36, 0.3);
-            position: relative;
+            border-bottom: 2px solid #00ffff;
+            text-shadow: 0 0 10px #00ffff;
         }
 
-        .header-img {
-            width: 100%;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-
-        h1 { font-size: 1.5rem; color: #fbbf24; text-transform: uppercase; margin-bottom: 10px; }
-        p { font-size: 0.9rem; color: #cbd5e1; }
-
-        .form-group {
-            text-align: left;
-            margin: 15px 0;
-        }
-
-        label { display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 5px; }
-        
-        input {
-            width: 100%;
-            padding: 12px;
-            background: #334155;
-            border: 1px solid #475569;
-            border-radius: 8px;
+        .promo {
+            background: red;
             color: white;
+            text-align: center;
+            padding: 8px;
             font-weight: bold;
-            box-sizing: border-box;
-        }
-
-        .flex-input {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-claim {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(to right, #fbbf24, #f59e0b);
-            color: #000;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
+            font-size: 13px;
             text-transform: uppercase;
-            margin-top: 10px;
-            box-shadow: 0 4px 0 #b45309;
         }
 
-        .btn-claim:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 0 #b45309;
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+            padding: 20px;
         }
 
-        /* Tampilan Troll */
+        /* Card Produk yang fotonya kamu kasih */
+        .pet-card {
+            background: #111;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+            transition: 0.3s;
+        }
+
+        .pet-card:hover { transform: scale(1.05); border-color: red; box-shadow: 0 0 20px rgba(255, 0, 0, 0.5); }
+
+        .pet-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-bottom: 2px solid #00ffff;
+        }
+
+        .pet-info { padding: 12px; text-align: center; }
+        .pet-name { font-weight: bold; font-size: 14px; margin-bottom: 5px; text-transform: uppercase; color: #ff00ff; }
+        .pet-desc { font-size: 11px; color: #ccc; margin-bottom: 10px; height: 30px; overflow: hidden; }
+        
+        .btn-adopt {
+            background: transparent;
+            color: #00ffff;
+            border: 2px solid #00ffff;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            text-transform: uppercase;
+        }
+
+        .btn-adopt:hover { background: #00ffff; color: black; }
+
+        /* Overlay Troll Final */
         #troll-screen {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: #000;
-            z-index: 100;
+            z-index: 999;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
+            padding: 20px;
         }
 
         #troll-image {
-            width: 85%;
+            width: 90%;
             max-width: 400px;
-            border: 5px solid #fbbf24;
-            border-radius: 10px;
-            animation: shake 0.1s infinite;
+            border: 10px solid #ff00ff;
+            border-radius: 20px;
+            animation: glitch 0.1s infinite;
         }
 
-        .oalah-text {
-            color: #fbbf24;
-            font-size: 2rem;
-            font-weight: 900;
-            margin-top: 20px;
-            text-shadow: 2px 2px #f43f5e;
-        }
+        .oalah-text { font-size: 40px; font-weight: 900; color: #00ffff; margin-top: 20px; text-shadow: 0 0 10px #00ffff; }
 
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            50% { transform: translate(-1px, -2px) rotate(-1deg); }
-            100% { transform: translate(1px, -1px) rotate(1deg); }
-        }
-
-        #loading-overlay {
+        @keyframes glitch { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -1px); } 100% { transform: translate(0); } }
+        
+        #loading {
             display: none;
-            position: absolute;
+            position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            border-radius: 15px;
+            background: rgba(0,0,0,0.95);
+            z-index: 500;
             justify-content: center;
             align-items: center;
-            flex-direction: column;
-            z-index: 10;
+            font-weight: bold;
         }
-
-        .spinner {
-            border: 4px solid rgba(255,255,255,0.1);
-            border-left-color: #fbbf24;
-            width: 40px; height: 40px;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <div class="ml-container">
-        <img src="https://img.okezone.com/content/2021/08/17/326/2456721/mobile-legends-bang-bang-rayakan-ulang-tahun-ke-5-hadirkan-banyak-kejutan-G6V1m198fA.jpg" class="header-img" alt="MLBB Event">
-        
-        <h1>6,000 DIAMOND GRATIS!</h1>
-        <p>Event HUT MLBB: Masukkan User ID anda untuk menerima hadiah diamond instan ke akun anda.</p>
+    <div class="promo">⚡ AWAS! KOLEKSI INI TIDAK UNTUK DIJUAL SEMBARANGAN ⚡</div>
+    
+    <header>
+        <h1>Pet Shop Misteri 🔮</h1>
+        <p>Hanya untuk yang berani.</p>
+    </header>
 
-        <div class="form-group">
-            <label>USER ID & SERVER</label>
-            <div class="flex-input">
-                <input type="number" id="userid" placeholder="ID User (12345678)">
-                <input type="number" id="serverid" style="width: 80px;" placeholder="(2001)">
+    <div class="container">
+        <div class="pet-card">
+            <img src="https://i.ibb.co/M5gWHMCd/image.jpg" alt="Foto Kucing">
+            <div class="pet-info">
+                <div class="pet-name">Anomali Makan Bang</div>
+                <div class="pet-desc">Hanya terlihat di cermin retak.</div>
+                <button class="btn-adopt" onclick="pesan()">BELI SEKARANG</button>
             </div>
         </div>
 
-        <button class="btn-claim" onclick="startHack()">KLAIM SEKARANG</button>
+        <div class="pet-card">
+            <img src="https://i.ibb.co/jZv9YrBr/4.jpg" alt="Foto Jidat">
+            <div class="pet-info">
+                <div class="pet-name">Peliharaan Jidat</div>
+                <div class="pet-desc">Dia selalu memikirkan nasibmu.</div>
+                <button class="btn-adopt" onclick="pesan()">BELI SEKARANG</button>
+            </div>
+        </div>
 
-        <div id="loading-overlay">
-            <div class="spinner"></div>
-            <p id="loading-text" style="margin-top: 15px; font-weight: bold;">Menghubungkan ke server Moonton...</p>
+        <div class="pet-card">
+            <img src="https://i.ibb.co/Rp99TN9b/7.jpg" alt="Foto Kucing Putih">
+            <div class="pet-info">
+                <div class="pet-name">Anabul Putih</div>
+                <div class="pet-desc">Mata yang menyimpan rahasia dunia.</div>
+                <button class="btn-adopt" onclick="pesan()">BELI SEKARANG</button>
+            </div>
+        </div>
+
+        <div class="pet-card">
+            <img src="https://i.ibb.co/B2CL2mRc/3.jpg" alt="Foto OALAH">
+            <div class="pet-info">
+                <div class="pet-name">Spesies OALAH</div>
+                <div class="pet-desc">Dia tahu apa yang kamu lakukan semalam.</div>
+                <button class="btn-adopt" onclick="pesan()">BELI SEKARANG</button>
+            </div>
         </div>
     </div>
 
+    <div id="loading">Memproses transaksi terlarang...</div>
+
     <div id="troll-screen">
         <img src="https://i.ibb.co/B2CL2mRc/3.jpg" id="troll-image" alt="OALAH">
-        <div class="oalah-text">OALAH... AKUN GW DI HACK BJIRRR!! 😂</div>
-        <p style="color: white; margin-top: 10px;">BALIKIN AKUN GW ANJING by SIMON!</p>
-        <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #334155; color: white; border: none; border-radius: 5px; cursor: pointer;">Coba Lagi (Gak bakal bisa)</button>
+        <div class="oalah-text">OALAH...</div>
+        <p style="color: white; margin-top: 10px;">Kamu baru saja membeli fotomu sendiri di Deep Web! 😂</p>
+        <button onclick="location.reload()" style="margin-top:20px; padding:10px 20px; border-radius:5px; border:1px solid #ff00ff; background:transparent; color:#ff00ff; cursor:pointer;">Coba Lagi (Gak bakal bisa)</button>
     </div>
 
     <script>
-        function startHack() {
-            const id = document.getElementById('userid').value;
-            const server = document.getElementById('serverid').value;
-
-            if (id === "" || server === "") {
-                alert("Isi ID & Server dulu, nanti diamondnya nyasar ke akun bapakmu!");
-                return;
-            }
-
-            const loading = document.getElementById('loading-overlay');
-            const lText = document.getElementById('loading-text');
+        function pesan() {
+            const loading = document.getElementById('loading');
+            const troll = document.getElementById('troll-screen');
+            
             loading.style.display = 'flex';
 
-            // Tahap-tahap loading biar dia deg-degan
-            setTimeout(() => { lText.innerText = "Mencari ID: " + id + " (" + server + ")..."; }, 1500);
-            setTimeout(() => { lText.innerText = "ID Ditemukan! Menginjeksi 6,000 Diamond..."; }, 3000);
-            setTimeout(() => { lText.innerText = "Hampir selesai... Verifikasi Keamanan..."; }, 4500);
-            
-            // Eksekusi Troll
+            // Biar seolah-olah beneran diproses
             setTimeout(() => {
-                document.getElementById('troll-screen').style.display = 'flex';
-                // Audio ketawa khas meme Indo
+                loading.innerText = "Data Ditemukan! Mengambil foto aslimu...";
+            }, 1500);
+
+            setTimeout(() => {
+                loading.style.display = 'none';
+                troll.style.display = 'flex';
+                // Suara ketawa
                 let audio = new Audio('https://www.myinstants.com/media/sounds/suara-ketawa-meme.mp3');
                 audio.play();
-            }, 6000);
+            }, 3500);
         }
     </script>
 </body>
